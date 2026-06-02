@@ -28,9 +28,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 */
 Route::middleware('auth')->group(function () {
 
-    // Dashboard: Administrador, Supervisor, Inventario
+    // Dashboard: accesible para TODOS los roles autenticados (según tabla RBAC del Sprint 2)
     Route::get('/dashboard', fn () => view('dashboard.index'))
-        ->middleware('rol:Supervisor,Inventario')
         ->name('dashboard');
 
     // Punto de Venta (POS): Administrador, Cajero, Supervisor
