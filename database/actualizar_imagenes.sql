@@ -1,0 +1,55 @@
+-- ============================================================
+--  Vortex Epix - Actualiza TODAS las imágenes de productos
+--  USAR ESTE si ya ejecutaste antes el de las columnas.
+--  Ejecutar en la base `supermercado`.
+-- ============================================================
+UPDATE `productos` SET `imagen`='Arroz.jpg'                                   WHERE id_producto=1;
+UPDATE `productos` SET `imagen`='Frijol.jpg'                                  WHERE id_producto=2;
+UPDATE `productos` SET `imagen`='Soda.jpg'                                    WHERE id_producto=3;
+UPDATE `productos` SET `imagen`='Pepsi.jpg'                                   WHERE id_producto=4;
+UPDATE `productos` SET `imagen`='Papaslays.jpg'                               WHERE id_producto=5;
+UPDATE `productos` SET `imagen`='pringles.jpg'                                WHERE id_producto=6;
+UPDATE `productos` SET `imagen`='foremost-leche.jpg'                          WHERE id_producto=7;
+UPDATE `productos` SET `imagen`='Queso.jpg'                                   WHERE id_producto=8;
+UPDATE `productos` SET `imagen`='bimbo.jpg'                                   WHERE id_producto=9;
+UPDATE `productos` SET `imagen`='Bimbo-integral.jpg'                          WHERE id_producto=10;
+UPDATE `productos` SET `imagen`='Azucar.jpg'                                  WHERE id_producto=11;
+UPDATE `productos` SET `imagen`='Sal.jpg'                                     WHERE id_producto=12;
+UPDATE `productos` SET `imagen`='Lata.jpg'                                    WHERE id_producto=13;
+UPDATE `productos` SET `imagen`='Pepsilata.jpg'                               WHERE id_producto=14;
+UPDATE `productos` SET `imagen`='Nachos.jpg'                                  WHERE id_producto=15;
+UPDATE `productos` SET `imagen`='BBQ.jpg'                                     WHERE id_producto=16;
+UPDATE `productos` SET `imagen`='Yogurt.jpg'                                  WHERE id_producto=17;
+UPDATE `productos` SET `imagen`='Crema.jpg'                                   WHERE id_producto=18;
+UPDATE `productos` SET `imagen`='Pandulce.jpg'                                WHERE id_producto=19;
+UPDATE `productos` SET `imagen`='bimbo-croissant.jpg'                         WHERE id_producto=20;
+UPDATE `productos` SET `imagen`='Harina.jpg'                                  WHERE id_producto=21;
+UPDATE `productos` SET `imagen`='Avena.jpg'                                   WHERE id_producto=22;
+UPDATE `productos` SET `imagen`='Coca2l.jpg'                                  WHERE id_producto=23;
+UPDATE `productos` SET `imagen`='Pepsi2ljpg.jpg'                              WHERE id_producto=24;
+UPDATE `productos` SET `imagen`='Chips.jpg'                                   WHERE id_producto=25;
+UPDATE `productos` SET `imagen`='67g-Pringles-original-potato-chips-2048x2048.jpeg' WHERE id_producto=26;
+UPDATE `productos` SET `imagen`='lescheDecremadaForemost.png'                 WHERE id_producto=27;
+UPDATE `productos` SET `imagen`='quesofrescoDosPinos.jpg'                     WHERE id_producto=28;
+UPDATE `productos` SET `imagen`='PanMoldeBimbo.jpg'                           WHERE id_producto=29;
+UPDATE `productos` SET `imagen`='donasBimbo.jpeg'                             WHERE id_producto=30;
+UPDATE `productos` SET `imagen`='Lenteja-DIANA.jpg'                           WHERE id_producto=31;
+UPDATE `productos` SET `imagen`='maiz_diana.png'                              WHERE id_producto=32;
+UPDATE `productos` SET `imagen`='sprite-coca-cola.png'                        WHERE id_producto=33;
+UPDATE `productos` SET `imagen`='pepsi7up.png'                                WHERE id_producto=34;
+UPDATE `productos` SET `imagen`='doritos1.jpg'                                WHERE id_producto=35;
+UPDATE `productos` SET `imagen`='pringles-queso.png'                          WHERE id_producto=36;
+UPDATE `productos` SET `imagen`='leche-entera-foremost.png'                   WHERE id_producto=37;
+UPDATE `productos` SET `imagen`='mantequilla-dos-pinos.png'                   WHERE id_producto=38;
+UPDATE `productos` SET `imagen`='panfrancesbimbo.png'                         WHERE id_producto=39;
+UPDATE `productos` SET `imagen`='pan-blanco-bimbo.png'                        WHERE id_producto=40;
+UPDATE `productos` SET `imagen`='sopa-diana.jpg'                              WHERE id_producto=41;
+UPDATE `productos` SET `imagen`='fideos-diana-7-4.jpg'                        WHERE id_producto=42;
+UPDATE `productos` SET `imagen`='fanta.png'                                   WHERE id_producto=43;
+UPDATE `productos` SET `imagen`='mirinda.png'                                 WHERE id_producto=44;
+UPDATE `productos` SET `imagen`='churritos.png'                               WHERE id_producto=45;
+UPDATE `productos` SET `imagen`='pringles-picante.png'                        WHERE id_producto=46;
+UPDATE `productos` SET `imagen`='leche-ligh.png'                              WHERE id_producto=47;
+UPDATE `productos` SET `imagen`='queso-chedar-dos-pinos.png'                  WHERE id_producto=48;
+UPDATE `productos` SET `imagen`='pan-hamburguesa-bimbo.png'                   WHERE id_producto=49;
+UPDATE `productos` SET `imagen`='Pan-Bimbo-Boller-Hot-Dog3-30474.jpg'         WHERE id_producto=50;
