@@ -151,12 +151,27 @@ class PosController extends Controller
         }
     }
 
-    // Comprobante imprimible: ticket (recibo pequeño) o factura (página completa)
+    // Comprobante imprimible: ticket (PDF del tamaño del recibo) o factura (página completa)
     public function comprobante(Request $request, $id)
     {
         $venta = Venta::with(['detalles.producto', 'factura', 'empleado'])->findOrFail($id);
         $tipo = $request->query('tipo', 'Ticket');
-        $vista = $tipo === 'Factura' ? 'pos.factura' : 'pos.ticket';
-        return view($vista, compact('venta'));
+
+        if ($tipo === 'Factura') {
+            return view('pos.factura', compact('venta'));
+        }
+
+        // TICKET: si DomPDF está instalado, se genera un PDF del tamaño EXACTO del recibo (80 mm de ancho)
+        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+            $mm = 2.83465; // 1 mm = 2.83465 puntos
+            $altoMm = 100 + ($venta->detalles->count() * 12); // el alto se ajusta a la cantidad de productos
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pos.ticket_pdf', compact('venta'))
+                ->setPaper([0, 0, 80 * $mm, $altoMm * $mm]);
+            $numero = $venta->factura->numero_factura ?? $venta->id_venta;
+            return $pdf->stream("ticket-{$numero}.pdf");
+        }
+
+        // Respaldo: si aún no instalan DomPDF, se muestra el ticket en HTML
+        return view('pos.ticket', compact('venta'));
     }
 }
