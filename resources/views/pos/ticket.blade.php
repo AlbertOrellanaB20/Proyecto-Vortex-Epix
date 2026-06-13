@@ -26,11 +26,14 @@
     .btn-print { background:#22c55e; color:#fff; }
     .btn-back { background:#fff; color:#475569; border:1px solid #cbd5e1; }
 
-    /* AL IMPRIMIR: papel angosto tipo recibo (80 mm), sin fondo ni botones */
+    /* Tamaño de la HOJA al imprimir: recibo angosto de 80 mm.
+       (La regla @page va a NIVEL PRINCIPAL, no dentro de @media; así sí la respeta el navegador.) */
+    @page { size: 80mm auto; margin: 0; }
+
+    /* Al imprimir: sin fondo ni botones, contenido al ancho del recibo */
     @media print {
-        @page { size: 80mm auto; margin: 0; }
         html, body { width: 80mm; background:#fff; padding:0; margin:0; display:block; }
-        .recibo { width: 80mm; box-shadow:none; padding: 4mm 4mm; font-size:12px; }
+        .recibo { width: 80mm; box-shadow:none; padding: 4mm; font-size:12px; }
         .acciones, .no-print { display:none !important; }
     }
 </style>
