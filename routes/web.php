@@ -4,6 +4,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\ProveedorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -54,10 +56,27 @@ Route::middleware('auth')->group(function () {
     });
 
     /*----------------------------------------------------------------
+    | MÓDULO: Clientes + Proveedores  →  Edgar (edgar/clientes)
+    *----------------------------------------------------------------*/
+    // Clientes Frecuentes: Administrador, Supervisor
+    Route::middleware('rol:Supervisor')->group(function () {
+        Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
+        Route::post('/clientes', [ClienteController::class, 'store'])->name('clientes.store');
+        Route::post('/clientes/puntos', [ClienteController::class, 'agregarPuntos'])->name('clientes.puntos');
+        Route::put('/clientes/{id}', [ClienteController::class, 'update'])->name('clientes.update');
+        Route::delete('/clientes/{id}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
+    });
+    // Proveedores: Administrador, Inventario
+    Route::middleware('rol:Inventario')->group(function () {
+        Route::get('/proveedores', [ProveedorController::class, 'index'])->name('proveedores.index');
+        Route::post('/proveedores', [ProveedorController::class, 'store'])->name('proveedores.store');
+        Route::put('/proveedores/{id}', [ProveedorController::class, 'update'])->name('proveedores.update');
+        Route::delete('/proveedores/{id}', [ProveedorController::class, 'destroy'])->name('proveedores.destroy');
+    });
+
+    /*----------------------------------------------------------------
     | Otros módulos (de los demás compañeros) — vistas por ahora
     *----------------------------------------------------------------*/
-    Route::get('/clientes', fn () => view('clientes.index'))->middleware('rol:Supervisor')->name('clientes.index');
-    Route::get('/proveedores', fn () => view('proveedores.index'))->middleware('rol:Inventario')->name('proveedores.index');
     Route::get('/empleados', fn () => view('empleados.index'))->middleware('rol:Supervisor')->name('empleados.index');
     Route::get('/facturacion', fn () => view('facturacion.index'))->middleware('rol:Supervisor')->name('facturacion.index');
     Route::get('/reportes', fn () => view('reportes.index'))->middleware('rol:Supervisor')->name('reportes.index');
