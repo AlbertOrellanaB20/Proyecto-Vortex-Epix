@@ -6,6 +6,8 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProveedorController;
+use App\Http\Controllers\FacturacionController;
+use App\Http\Controllers\ReporteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -78,6 +80,15 @@ Route::middleware('auth')->group(function () {
     | Otros módulos (de los demás compañeros) — vistas por ahora
     *----------------------------------------------------------------*/
     Route::get('/empleados', fn () => view('empleados.index'))->middleware('rol:Supervisor')->name('empleados.index');
-    Route::get('/facturacion', fn () => view('facturacion.index'))->middleware('rol:Supervisor')->name('facturacion.index');
-    Route::get('/reportes', fn () => view('reportes.index'))->middleware('rol:Supervisor')->name('reportes.index');
+
+    /*----------------------------------------------------------------
+    | MÓDULO: Facturación + Reportes  →  Eduardo (eduardo/reportes)
+    | Acceso: Administrador, Supervisor
+    *----------------------------------------------------------------*/
+    Route::middleware('rol:Supervisor')->group(function () {
+        Route::get('/facturacion', [FacturacionController::class, 'index'])->name('facturacion.index');
+        Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+        Route::get('/reportes/excel', [ReporteController::class, 'exportarExcel'])->name('reportes.excel');
+        Route::get('/reportes/pdf', [ReporteController::class, 'exportarPdf'])->name('reportes.pdf');
+    });
 });
