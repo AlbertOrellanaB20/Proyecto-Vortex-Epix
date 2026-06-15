@@ -8,6 +8,8 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\FacturacionController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ConfiguracionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,8 +28,14 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
 
-    // Dashboard: todos los roles
-    Route::get('/dashboard', fn () => view('dashboard.index'))->name('dashboard');
+    // Dashboard: todos los roles (módulo de Bryan Steve)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Configuración: solo Administrador (módulo de Bryan Steve)
+    Route::middleware('rol:Administrador')->group(function () {
+        Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
+        Route::put('/configuracion', [ConfiguracionController::class, 'update'])->name('configuracion.update');
+    });
 
     /*----------------------------------------------------------------
     | MÓDULO: Punto de Venta (POS) + Escáner  →  Diego (diego/pos)

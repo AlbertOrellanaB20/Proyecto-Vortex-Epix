@@ -11,6 +11,7 @@
         ['ruta' => 'empleados.index',    'icono' => 'id-card',          'texto' => 'Empleados',   'roles' => ['Administrador','Supervisor']],
         ['ruta' => 'facturacion.index',  'icono' => 'file-text',        'texto' => 'Facturación', 'roles' => ['Administrador','Supervisor']],
         ['ruta' => 'reportes.index',     'icono' => 'bar-chart-3',      'texto' => 'Reportes',    'roles' => ['Administrador','Supervisor']],
+        ['ruta' => 'configuracion.index','icono' => 'settings',         'texto' => 'Configuración','roles' => ['Administrador']],
     ];
 @endphp
 <aside class="w-64 bg-vortex-navy text-slate-300 flex flex-col shrink-0">
