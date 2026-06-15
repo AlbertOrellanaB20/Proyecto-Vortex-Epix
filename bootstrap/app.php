@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\VerificarRol;
+use App\Http\Middleware\AuditoriaLog;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Redirigir invitados al login en lugar de a la ruta 'login' por defecto.
         $middleware->redirectGuestsTo('/login');
+
+        // Bitácora: registra automáticamente la actividad del sistema (módulo de Danilo).
+        $middleware->appendToGroup('web', AuditoriaLog::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -10,6 +10,8 @@ use App\Http\Controllers\FacturacionController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\BitacoraController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,7 +89,20 @@ Route::middleware('auth')->group(function () {
     /*----------------------------------------------------------------
     | Otros módulos (de los demás compañeros) — vistas por ahora
     *----------------------------------------------------------------*/
-    Route::get('/empleados', fn () => view('empleados.index'))->middleware('rol:Supervisor')->name('empleados.index');
+    /*----------------------------------------------------------------
+    | MÓDULO: Seguridad + Logs  →  Danilo (danilo/seguridad)
+    *----------------------------------------------------------------*/
+    // Usuarios / Empleados: Administrador, Supervisor
+    Route::middleware('rol:Supervisor')->group(function () {
+        Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
+        Route::post('/empleados', [EmpleadoController::class, 'store'])->name('empleados.store');
+        Route::put('/empleados/{id}', [EmpleadoController::class, 'update'])->name('empleados.update');
+        Route::delete('/empleados/{id}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
+    });
+    // Bitácora / Logs: solo Administrador
+    Route::middleware('rol:Administrador')->group(function () {
+        Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
+    });
 
     /*----------------------------------------------------------------
     | MÓDULO: Facturación + Reportes  →  Eduardo (eduardo/reportes)
