@@ -25,35 +25,38 @@ class ProveedorController extends Controller
         return view('proveedores.index', compact('proveedores', 'total', 'buscar'));
     }
 
-    public function store(Request $request)
+    // El nombre de empresa SÍ puede llevar números (ej. "Super 99"); el teléfono no.
+    private function reglas(): array
     {
-        $datos = $request->validate([
+        return [
             'nombre_empresa' => ['required', 'string', 'max:100'],
             'categoria'      => ['nullable', 'string', 'max:100'],
-            'telefono'       => ['nullable', 'string', 'max:100'],
+            'telefono'       => ['nullable', 'regex:/^\d{4}-?\d{4}$/'],
             'correo'         => ['nullable', 'email', 'max:100'],
-            'direccion'      => ['nullable', 'string', 'max:100'],
-        ]);
+            'direccion'      => ['nullable', 'string', 'max:200'],
+        ];
+    }
 
+    private function mensajes(): array
+    {
+        return [
+            'telefono.regex' => 'El teléfono debe tener 8 dígitos (ejemplo: 7777-7777).',
+            'correo.email'   => 'El correo no tiene un formato válido.',
+        ];
+    }
+
+    public function store(Request $request)
+    {
+        $datos = $request->validate($this->reglas(), $this->mensajes());
         Proveedor::create($datos);
-
         return redirect()->route('proveedores.index')->with('exito', 'Proveedor agregado correctamente.');
     }
 
     public function update(Request $request, $id)
     {
         $proveedor = Proveedor::findOrFail($id);
-
-        $datos = $request->validate([
-            'nombre_empresa' => ['required', 'string', 'max:100'],
-            'categoria'      => ['nullable', 'string', 'max:100'],
-            'telefono'       => ['nullable', 'string', 'max:100'],
-            'correo'         => ['nullable', 'email', 'max:100'],
-            'direccion'      => ['nullable', 'string', 'max:100'],
-        ]);
-
+        $datos = $request->validate($this->reglas(), $this->mensajes());
         $proveedor->update($datos);
-
         return redirect()->route('proveedores.index')->with('exito', 'Proveedor actualizado correctamente.');
     }
 
