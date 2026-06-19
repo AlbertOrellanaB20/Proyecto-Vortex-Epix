@@ -72,7 +72,7 @@
         <div class="cliente">
             <div>
                 <div class="et">Cliente</div>
-                <div>Consumidor Final</div>
+                <div>{{ $f->cliente ? $f->cliente->nombre . ' ' . $f->cliente->apellido : 'Consumidor Final' }}</div>
             </div>
             <div>
                 <div class="et">Atendido por</div>

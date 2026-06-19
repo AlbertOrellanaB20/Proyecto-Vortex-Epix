@@ -16,4 +16,9 @@ class Factura extends Model
     {
         return $this->hasOne(Venta::class, 'id_factura', 'id_factura');
     }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
+    }
 }

@@ -51,6 +51,15 @@
             <div class="flex justify-between text-lg font-bold text-slate-800"><span>Total</span><span id="t_total" class="text-vortex-green2">$0.00</span></div>
         </div>
 
+        {{-- Cliente --}}
+        <p class="text-xs font-medium text-slate-600 mb-2 flex items-center gap-1"><i data-lucide="user" class="w-4 h-4"></i> Cliente</p>
+        <select id="selectCliente" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
+            <option value="">Consumidor Final</option>
+            @foreach($clientes as $cli)
+                <option value="{{ $cli->id_cliente }}">{{ $cli->nombre }} {{ $cli->apellido }} ({{ $cli->codigo_cliente }})</option>
+            @endforeach
+        </select>
+
         {{-- Método de pago --}}
         <p class="text-xs font-medium text-slate-600 mb-2">Método de Pago</p>
         <div class="grid grid-cols-2 gap-2 mb-3">
@@ -114,6 +123,11 @@
         <div class="bg-slate-50 rounded-lg p-3 mb-4 text-sm">
             <div class="flex justify-between"><span class="text-slate-500">Total cobrado</span><span id="x_total" class="font-semibold"></span></div>
             <div id="x_vuelto_row" class="flex justify-between mt-1"><span class="text-slate-500">Vuelto</span><span id="x_vuelto" class="font-bold text-vortex-green2 text-lg"></span></div>
+        </div>
+
+        {{-- Puntos otorgados al cliente --}}
+        <div id="x_puntos_row" class="hidden bg-green-50 text-vortex-green2 rounded-lg p-3 mb-4 text-sm">
+            <i data-lucide="star" class="w-4 h-4 inline"></i> <span id="x_cliente"></span> ganó <span id="x_puntos" class="font-bold"></span> puntos
         </div>
 
         <div class="flex gap-2">
@@ -268,7 +282,8 @@
                     items: carrito.map(i => ({ id: i.id, cantidad: i.cantidad })),
                     metodo_pago: metodo,
                     tipo_documento: document.querySelector('input[name="tipo"]:checked').value,
-                    efectivo: efectivo
+                    efectivo: efectivo,
+                    id_cliente: document.getElementById('selectCliente').value || null
                 })
             });
             const data = await r.json();
@@ -283,6 +298,14 @@
         document.getElementById('x_vuelto').textContent = '$' + Number(d.vuelto).toFixed(2);
         document.getElementById('x_vuelto_row').style.display = (metodoActual() === 'Efectivo') ? 'flex' : 'none';
         document.getElementById('x_imprimir').href = URL_COMPROB + '/' + d.id_venta + '?tipo=' + encodeURIComponent(d.tipo);
+        const filaPuntos = document.getElementById('x_puntos_row');
+        if (d.puntos_ganados && d.puntos_ganados > 0) {
+            document.getElementById('x_cliente').textContent = d.cliente;
+            document.getElementById('x_puntos').textContent = d.puntos_ganados;
+            filaPuntos.classList.remove('hidden');
+        } else {
+            filaPuntos.classList.add('hidden');
+        }
         const modal = document.getElementById('modalExito');
         modal.classList.remove('hidden'); modal.classList.add('flex');
         lucide.createIcons();

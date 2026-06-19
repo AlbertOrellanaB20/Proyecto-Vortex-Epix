@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Venta;
 use App\Models\Factura;
+use App\Models\Cliente;
 use App\Models\DetalleVenta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,8 @@ class PosController extends Controller
 {
     public function index()
     {
-        return view('pos.index');
+        $clientes = Cliente::orderBy('nombre')->get();
+        return view('pos.index', compact('clientes'));
     }
 
     // Buscar producto por código (escaneado o tecleado). El profe pidió SOLO por código.
@@ -65,6 +67,7 @@ class PosController extends Controller
             'metodo_pago'      => ['required', 'in:Efectivo,Tarjeta'],
             'tipo_documento'   => ['required', 'in:Ticket,Factura'],
             'efectivo'         => ['nullable', 'numeric', 'min:0'],
+            'id_cliente'       => ['nullable', 'exists:clientes,id_cliente'],
         ]);
 
         DB::beginTransaction();
@@ -103,7 +106,7 @@ class PosController extends Controller
                 'total'          => $total,
                 'numero_factura' => $numero,
                 'fecha'          => now()->toDateString(),
-                'id_cliente'     => null,
+                'id_cliente'     => $datos['id_cliente'] ?? null,
                 'id_empleado'    => auth()->id(),
             ]);
 
@@ -129,6 +132,20 @@ class PosController extends Controller
                 $producto->decrement('stock', $item['cantidad']);
             }
 
+            // Acumular puntos al cliente (si se selecciono uno)
+            $puntosGanados = 0;
+            $clienteNombre = 'Consumidor Final';
+            if (!empty($datos['id_cliente'])) {
+                $cliente = Cliente::find($datos['id_cliente']);
+                if ($cliente) {
+                    $puntosGanados = Cliente::puntosPorCompra($total);
+                    $cliente->puntos += $puntosGanados;
+                    $cliente->nivel_fidelidad = Cliente::nivelPorPuntos($cliente->puntos);
+                    $cliente->save();
+                    $clienteNombre = $cliente->nombre . ' ' . $cliente->apellido;
+                }
+            }
+
             DB::commit();
 
             $vuelto = $datos['metodo_pago'] === 'Efectivo'
@@ -143,6 +160,8 @@ class PosController extends Controller
                 'total'          => $total,
                 'vuelto'         => $vuelto,
                 'tipo'           => $datos['tipo_documento'],
+                'cliente'        => $clienteNombre,
+                'puntos_ganados' => $puntosGanados,
             ]);
         } catch (\Exception $e) {
             // Si algo falla, se revierte TODO (no se corrompe el inventario)
@@ -154,7 +173,7 @@ class PosController extends Controller
     // Comprobante imprimible: ticket (PDF del tamaño del recibo) o factura (página completa)
     public function comprobante(Request $request, $id)
     {
-        $venta = Venta::with(['detalles.producto', 'factura', 'empleado'])->findOrFail($id);
+        $venta = Venta::with(['detalles.producto', 'factura.cliente', 'empleado'])->findOrFail($id);
         $tipo = $request->query('tipo', 'Ticket');
 
         if ($tipo === 'Factura') {

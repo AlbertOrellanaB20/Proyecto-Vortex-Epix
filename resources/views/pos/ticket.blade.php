@@ -52,6 +52,7 @@
         <div class="linea"></div>
         <div>Fecha: {{ \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y H:i') }}</div>
         <div>Cajero: {{ $venta->empleado->nombre ?? '' }} {{ $venta->empleado->apellido ?? '' }}</div>
+        <div>Cliente: {{ $f->cliente ? $f->cliente->nombre . ' ' . $f->cliente->apellido : 'Consumidor Final' }}</div>
         <div>Pago: {{ $f->metodo_pago ?? '—' }}</div>
         <div class="linea"></div>
         <table>
