@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
+use App\Models\Configuracion;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
@@ -92,6 +93,7 @@ class ClienteController extends Controller
         return redirect()->route('clientes.index')->with('exito', 'Cliente eliminado correctamente.');
     }
 
+    // Suma puntos según el monto de la compra (usa la economía del modelo Cliente)
     public function agregarPuntos(Request $request)
     {
         $datos = $request->validate([
@@ -103,18 +105,27 @@ class ClienteController extends Controller
         ]);
 
         $cliente = Cliente::findOrFail($datos['id_cliente']);
-        $ganados = (int) round($datos['monto']);
+        $ganados = Cliente::puntosPorCompra($datos['monto']);
         $nivelAnterior = $cliente->nivel_fidelidad;
 
         $cliente->puntos += $ganados;
         $cliente->nivel_fidelidad = Cliente::nivelPorPuntos($cliente->puntos);
         $cliente->save();
 
-        $msg = "Se agregaron {$ganados} puntos a {$cliente->nombre}. Total: {$cliente->puntos}.";
+        $valor = number_format($cliente->valorDescuento(), 2);
+        $msg = "Se agregaron {$ganados} puntos a {$cliente->nombre}. Total: {$cliente->puntos} puntos (equivalen a \${$valor} en descuentos).";
         if ($nivelAnterior !== $cliente->nivel_fidelidad) {
             $msg .= " ¡Subió de {$nivelAnterior} a {$cliente->nivel_fidelidad}!";
         }
 
         return redirect()->route('clientes.index')->with('exito', $msg);
+    }
+
+    // Muestra la tarjeta de fidelidad con QR (Santiago)
+    public function tarjeta($id)
+    {
+        $cliente = Cliente::findOrFail($id);
+        $config  = Configuracion::first();
+        return view('clientes.tarjeta', compact('cliente', 'config'));
     }
 }

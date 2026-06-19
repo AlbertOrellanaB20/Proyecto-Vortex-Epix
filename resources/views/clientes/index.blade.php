@@ -73,6 +73,7 @@
                             <div class="flex items-center justify-end gap-1.5">
                                 <button title="Sumar puntos" onclick="abrirPuntos({{ $c->id_cliente }}, '{{ addslashes($c->nombre) }}')" class="p-1.5 rounded-md text-vortex-green2 hover:bg-green-50"><i data-lucide="plus-circle" class="w-4 h-4"></i></button>
                                 <button title="Ver QR" onclick="verQR('{{ $c->codigo_cliente }}', '{{ addslashes($c->nombre) }}')" class="p-1.5 rounded-md text-slate-500 hover:bg-slate-100"><i data-lucide="qr-code" class="w-4 h-4"></i></button>
+                                <a title="Tarjeta de fidelidad" href="{{ route('clientes.tarjeta', $c->id_cliente) }}" target="_blank" class="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50"><i data-lucide="id-card" class="w-4 h-4"></i></a>
                                 <button title="Editar" onclick='editarCliente(@json($c))' class="p-1.5 rounded-md text-blue-500 hover:bg-blue-50"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                                 <form method="POST" action="{{ route('clientes.destroy', $c->id_cliente) }}" onsubmit="return confirm('¿Eliminar a {{ $c->nombre }}?');">
                                     @csrf @method('DELETE')
@@ -144,7 +145,7 @@
             <p class="text-sm text-slate-500 mb-3">Cliente: <span id="p_nombre" class="font-medium text-slate-700"></span></p>
             <label class="block text-xs font-medium text-slate-600 mb-1">Monto de la compra ($)</label>
             <input type="number" name="monto" step="0.01" min="0.01" required value="10" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
-            <p class="text-xs text-slate-400 mt-1">1 dólar = 1 punto. El nivel se actualiza solo.</p>
+            <p class="text-xs text-slate-400 mt-1">1 dólar = 1 punto · 100 puntos = $1 de descuento. El nivel se actualiza solo.</p>
             <div class="flex justify-end gap-2 mt-5"><button type="button" onclick="cerrarPuntos()" class="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">Cancelar</button><button type="submit" class="px-4 py-2 rounded-lg text-sm bg-vortex-green hover:bg-vortex-green2 text-white font-medium">Sumar puntos</button></div>
         </form>
     </div>

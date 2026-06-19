@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
     // Clientes Frecuentes: Administrador, Supervisor
     Route::middleware('rol:Supervisor')->group(function () {
         Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
+        Route::get('/clientes/{id}/tarjeta', [ClienteController::class, 'tarjeta'])->name('clientes.tarjeta');
         Route::post('/clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::post('/clientes/puntos', [ClienteController::class, 'agregarPuntos'])->name('clientes.puntos');
         Route::put('/clientes/{id}', [ClienteController::class, 'update'])->name('clientes.update');
