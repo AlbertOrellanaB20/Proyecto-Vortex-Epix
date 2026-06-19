@@ -11,6 +11,7 @@ class Empleado extends Authenticatable
 
     protected $table = 'empleados';
     protected $primaryKey = 'id_empleado';
+    public $timestamps = false; // la tabla empleados NO tiene created_at / updated_at
 
     protected $fillable = [
         'nombre', 'apellido', 'usuario', 'password', 'cargo', 'correo', 'telefono',

@@ -3,12 +3,38 @@
 @section('title', 'Iniciar Sesión')
 
 @section('content')
-<div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+<style>
+    /* Entrada de la tarjeta */
+    @keyframes vortexEntrar {
+        from { opacity: 0; transform: translateY(24px) scale(.98); }
+        to   { opacity: 1; transform: none; }
+    }
+    .vortex-entrar { animation: vortexEntrar .6s cubic-bezier(.22,1,.36,1); }
+
+    /* Flotar suave del ícono */
+    @keyframes vortexFlotar {
+        0%,100% { transform: translateY(0); }
+        50%     { transform: translateY(-6px); }
+    }
+    .vortex-flotar { animation: vortexFlotar 3s ease-in-out infinite; }
+
+    /* Aparición escalonada de los campos */
+    @keyframes vortexAparecer {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: none; }
+    }
+    .campo-anim { opacity: 0; animation: vortexAparecer .5s ease forwards; }
+    .campo-anim.d1 { animation-delay: .15s; }
+    .campo-anim.d2 { animation-delay: .30s; }
+    .campo-anim.d3 { animation-delay: .45s; }
+</style>
+
+<div class="vortex-entrar bg-white rounded-2xl shadow-2xl overflow-hidden">
     <div class="px-8 pt-8 pb-6">
 
         {{-- Ícono carrito verde + título --}}
         <div class="text-center space-y-3">
-            <div class="mx-auto w-16 h-16 bg-vortex-neon rounded-2xl flex items-center justify-center
+            <div class="vortex-flotar mx-auto w-16 h-16 bg-vortex-neon rounded-2xl flex items-center justify-center
                         shadow-lg shadow-vortex-neon/40">
                 <i data-lucide="shopping-cart" class="w-9 h-9 text-white"></i>
             </div>
@@ -35,7 +61,7 @@
             @csrf
 
             {{-- Usuario --}}
-            <div class="space-y-2">
+            <div class="space-y-2 campo-anim d1">
                 <label for="usuario" class="block text-sm font-medium text-vortex-navy">Usuario</label>
                 <div class="relative">
                     <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
@@ -49,56 +75,51 @@
                 </div>
             </div>
 
-            {{-- Contraseña --}}
-            <div class="space-y-2">
+            {{-- Contraseña (con botón mostrar/ocultar) --}}
+            <div class="space-y-2 campo-anim d2">
                 <label for="password" class="block text-sm font-medium text-vortex-navy">Contraseña</label>
                 <div class="relative">
                     <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
                     <input id="password" name="password" type="password"
                            placeholder="Ingrese su contraseña"
-                           class="w-full h-11 pl-10 pr-3 rounded-lg bg-gray-100 border border-transparent
+                           class="w-full h-11 pl-10 pr-11 rounded-lg bg-gray-100 border border-transparent
                                   text-vortex-navy placeholder-gray-400
                                   focus:bg-white focus:border-vortex-neon focus:ring-2 focus:ring-vortex-neon/40
                                   outline-none transition">
+                    <button type="button" id="togglePassword"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-vortex-neon transition">
+                        <i data-lucide="eye" id="iconoOjo" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </div>
 
             {{-- Botón verde neón --}}
-            <button type="submit"
-                    class="neon-glow w-full h-11 rounded-lg bg-vortex-neon hover:bg-green-500
-                           text-white font-semibold text-base flex items-center justify-center gap-2">
-                <i data-lucide="log-in" class="w-5 h-5"></i>
-                Iniciar Sesión
-            </button>
-        </form>
-
-        {{-- Lista de usuarios del sistema --}}
-        <div class="mt-6 p-4 bg-gray-100 rounded-lg">
-            <p class="font-semibold text-vortex-navy text-sm mb-3">Usuarios del sistema:</p>
-            <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
-                @php
-                    $usuarios = [
-                        ['usuario' => 'steve',     'rol' => 'Administrador'],
-                        ['usuario' => 'diego',     'rol' => 'Cajero'],
-                        ['usuario' => 'rudy',      'rol' => 'Cajero'],
-                        ['usuario' => 'alberto',   'rol' => 'Supervisor'],
-                        ['usuario' => 'alejandro', 'rol' => 'Inventario'],
-                    ];
-                @endphp
-                @foreach ($usuarios as $u)
-                    <div class="flex items-start gap-1.5">
-                        <i data-lucide="user-round" class="w-3.5 h-3.5 text-gray-500 mt-0.5"></i>
-                        <div class="leading-tight">
-                            <p class="text-gray-700">
-                                <span class="font-medium text-vortex-navy">{{ $u['usuario'] }}</span> / 123
-                            </p>
-                            <p class="text-[10px] text-vortex-neon font-medium">{{ $u['rol'] }}</p>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="campo-anim d3">
+                <button type="submit"
+                        class="neon-glow w-full h-11 rounded-lg bg-vortex-neon hover:bg-green-500
+                               text-white font-semibold text-base flex items-center justify-center gap-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    Iniciar Sesión
+                </button>
             </div>
-        </div>
+        </form>
 
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    // Mostrar / ocultar contraseña (interactividad)
+    const btnToggle = document.getElementById('togglePassword');
+    const inputPass = document.getElementById('password');
+    const iconoOjo  = document.getElementById('iconoOjo');
+    btnToggle.addEventListener('click', () => {
+        const esPass = inputPass.type === 'password';
+        inputPass.type = esPass ? 'text' : 'password';
+        iconoOjo.setAttribute('data-lucide', esPass ? 'eye-off' : 'eye');
+        lucide.createIcons();
+        inputPass.focus();
+    });
+</script>
 @endsection

@@ -27,7 +27,8 @@ class EmpleadoController extends Controller
         return view('empleados.index', compact('empleados', 'total', 'activos', 'cargos', 'buscar'));
     }
 
-    // nombre/apellido solo letras, usuario sin espacios, teléfono 8 dígitos
+    // nombre/apellido solo letras, usuario sin espacios, telefono 8 digitos,
+    // contraseña segura: minimo 8 caracteres con mayuscula, numero y simbolo
     private function reglas($id = null): array
     {
         $u = $id ? ',' . $id . ',id_empleado' : '';
@@ -35,7 +36,7 @@ class EmpleadoController extends Controller
             'nombre'   => ['required', 'regex:/^[\pL\s\'\.\-]+$/u', 'max:100'],
             'apellido' => ['required', 'regex:/^[\pL\s\'\.\-]+$/u', 'max:100'],
             'usuario'  => ['required', 'regex:/^[a-zA-Z0-9_.]+$/', 'max:50', 'unique:empleados,usuario' . $u],
-            'password' => [$id ? 'nullable' : 'required', 'string', 'min:3'],
+            'password' => [$id ? 'nullable' : 'required', 'string', 'min:8', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
             'cargo'    => ['required', 'in:Administrador,Cajero,Supervisor,Inventario'],
             'correo'   => ['nullable', 'email', 'max:100'],
             'telefono' => ['nullable', 'regex:/^\d{4}-?\d{4}$/'],
@@ -49,13 +50,15 @@ class EmpleadoController extends Controller
     private function mensajes(): array
     {
         return [
-            'nombre.regex'   => 'El nombre solo puede contener letras.',
-            'apellido.regex' => 'El apellido solo puede contener letras.',
-            'usuario.regex'  => 'El usuario no debe llevar espacios (solo letras, números, punto o guion bajo).',
-            'usuario.unique' => 'Ese usuario ya existe.',
-            'telefono.regex' => 'El teléfono debe tener 8 dígitos (ejemplo: 7777-7777).',
-            'correo.email'   => 'El correo no tiene un formato válido.',
-            'salario.numeric'=> 'El salario debe ser un número.',
+            'nombre.regex'    => 'El nombre solo puede contener letras.',
+            'apellido.regex'  => 'El apellido solo puede contener letras.',
+            'usuario.regex'   => 'El usuario no debe llevar espacios (solo letras, números, punto o guion bajo).',
+            'usuario.unique'  => 'Ese usuario ya existe.',
+            'password.min'    => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.regex'  => 'La contraseña debe incluir al menos una mayúscula, un número y un símbolo.',
+            'telefono.regex'  => 'El teléfono debe tener 8 dígitos (ejemplo: 7777-7777).',
+            'correo.email'    => 'El correo no tiene un formato válido.',
+            'salario.numeric' => 'El salario debe ser un número.',
         ];
     }
 
