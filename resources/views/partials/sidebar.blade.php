@@ -15,7 +15,9 @@
         ['ruta' => 'configuracion.index','icono' => 'settings',         'texto' => 'Configuración','roles' => ['Administrador']],
     ];
 @endphp
-<aside class="w-64 bg-vortex-navy text-slate-300 flex flex-col shrink-0">
+<aside id="sidebar" class="w-64 bg-vortex-navy text-slate-300 flex flex-col shrink-0
+       fixed inset-y-0 left-0 z-40 -translate-x-full transition-transform duration-300 ease-in-out
+       lg:static lg:translate-x-0">
     {{-- Logo --}}
     <div class="px-5 py-5 flex items-center gap-3 border-b border-white/10">
         <div class="w-10 h-10 rounded-xl bg-vortex-green flex items-center justify-center shrink-0">
@@ -25,6 +27,9 @@
             <p class="text-white font-bold text-lg">Vortex Epix</p>
             <p class="text-xs text-slate-400">Sistema POS</p>
         </div>
+        <button id="cerrarSidebar" class="lg:hidden ml-auto text-slate-400 hover:text-white" aria-label="Cerrar menu">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
     </div>
 
     {{-- Usuario --}}

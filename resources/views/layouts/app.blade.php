@@ -28,19 +28,27 @@
     {{-- Menú lateral --}}
     @include('partials.sidebar')
 
+    {{-- Fondo oscuro al abrir el menú en móvil --}}
+    <div id="backdrop" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+
     {{-- Contenido --}}
     <div class="flex-1 flex flex-col min-w-0">
         {{-- Barra superior --}}
-        <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
-            <div>
-                <h1 class="text-lg font-semibold text-slate-800">@yield('titulo', 'Panel')</h1>
-                <p class="text-xs text-slate-400">{{ ucfirst(\Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY')) }}</p>
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-20">
+            <div class="flex items-center gap-3">
+                <button id="abrirSidebar" class="lg:hidden text-slate-600 hover:text-vortex-green" aria-label="Abrir menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h1 class="text-base sm:text-lg font-semibold text-slate-800">@yield('titulo', 'Panel')</h1>
+                    <p class="hidden sm:block text-xs text-slate-400">{{ ucfirst(\Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY')) }}</p>
+                </div>
             </div>
             <div class="flex items-center gap-3">
-                <span id="reloj" class="text-sm text-slate-500 flex items-center gap-1">
+                <span id="reloj" class="hidden sm:flex text-sm text-slate-500 items-center gap-1">
                     <i data-lucide="clock" class="w-4 h-4"></i>
                 </span>
-                <div class="text-right leading-tight">
+                <div class="hidden sm:block text-right leading-tight">
                     <p class="text-sm font-medium text-slate-700">{{ auth()->user()->nombre }} {{ auth()->user()->apellido }}</p>
                     <p class="text-xs text-vortex-green font-medium uppercase">{{ auth()->user()->cargo }}</p>
                 </div>
@@ -70,6 +78,18 @@
 
 <script>
     lucide.createIcons();
+
+    // Menú lateral responsive (abrir / cerrar en móvil)
+    (function () {
+        const sidebar  = document.getElementById('sidebar');
+        const backdrop = document.getElementById('backdrop');
+        const abrir  = () => { sidebar.classList.remove('-translate-x-full'); backdrop.classList.remove('hidden'); };
+        const cerrar = () => { sidebar.classList.add('-translate-x-full'); backdrop.classList.add('hidden'); };
+        document.getElementById('abrirSidebar')?.addEventListener('click', abrir);
+        document.getElementById('cerrarSidebar')?.addEventListener('click', cerrar);
+        backdrop?.addEventListener('click', cerrar);
+    })();
+
     // Reloj en vivo (hilo de tiempo, como pedía el Sprint 1)
     function actualizarReloj() {
         const r = document.getElementById('reloj');
