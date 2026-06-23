@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Producto;
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 
 class ProductoController extends Controller
@@ -23,7 +24,10 @@ class ProductoController extends Controller
 
         $categorias = ['Alimentos', 'Bebidas', 'Snacks', 'Lacteos', 'Panaderia', 'Limpieza'];
 
-        return view('productos.index', compact('productos', 'categorias', 'buscar'));
+        // Lista de proveedores para el formulario de producto
+        $proveedores = Proveedor::orderBy('nombre_empresa')->get();
+
+        return view('productos.index', compact('productos', 'categorias', 'proveedores', 'buscar'));
     }
 
     // Guardar un producto nuevo
@@ -38,6 +42,7 @@ class ProductoController extends Controller
             'stock'         => ['required', 'integer', 'min:0'],
             'stock_minimo'  => ['nullable', 'integer', 'min:0'],
             'fecha_vencimiento' => ['nullable', 'date'],
+            'id_proveedor'  => ['nullable', 'integer', 'exists:proveedores,id_proveedor'],
         ], [], ['codigo_barras' => 'código de barras']);
 
         // El IVA (13%) se calcula automáticamente
@@ -63,6 +68,7 @@ class ProductoController extends Controller
             'stock'         => ['required', 'integer', 'min:0'],
             'stock_minimo'  => ['nullable', 'integer', 'min:0'],
             'fecha_vencimiento' => ['nullable', 'date'],
+            'id_proveedor'  => ['nullable', 'integer', 'exists:proveedores,id_proveedor'],
         ], [], ['codigo_barras' => 'código de barras']);
 
         $datos['precio_con_iva'] = round($datos['precio'] * 1.13, 2);

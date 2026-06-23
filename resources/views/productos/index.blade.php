@@ -127,6 +127,13 @@
                     <label class="block text-xs font-medium text-slate-600 mb-1">Vencimiento (opcional)</label>
                     <input type="date" name="fecha_vencimiento" id="f_venc" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Proveedor (opcional)</label>
+                    <select name="id_proveedor" id="f_proveedor" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
+                        <option value="">Sin proveedor</option>
+                        @foreach ($proveedores as $prov)<option value="{{ $prov->id_proveedor }}">{{ $prov->nombre_empresa }}</option>@endforeach
+                    </select>
+                </div>
             </div>
             <div class="flex justify-end gap-2 mt-5">
                 <button type="button" onclick="cerrarModalProducto()" class="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">Cancelar</button>
@@ -163,6 +170,7 @@
         document.getElementById('f_stock').value = p.stock || 0;
         document.getElementById('f_stockmin').value = p.stock_minimo || '';
         document.getElementById('f_venc').value = p.fecha_vencimiento || '';
+        document.getElementById('f_proveedor').value = p.id_proveedor || '';
         modal.classList.remove('hidden'); modal.classList.add('flex');
         lucide.createIcons();
     }

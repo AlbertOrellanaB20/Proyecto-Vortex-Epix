@@ -13,7 +13,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $hoy = Carbon::today();
+        $hoy = Carbon::today('America/El_Salvador');
 
         // Tarjetas
         $ventasHoy       = round(Venta::whereDate('fecha', $hoy)->sum('total'), 2);
@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $labelsSemana = [];
         $datosSemana  = [];
         for ($i = 6; $i >= 0; $i--) {
-            $dia = Carbon::today()->subDays($i);
+            $dia = Carbon::today('America/El_Salvador')->subDays($i);
             $labelsSemana[] = ucfirst($dia->locale('es')->isoFormat('ddd'));
             $datosSemana[]  = round(Venta::whereDate('fecha', $dia)->sum('total'), 2);
         }
