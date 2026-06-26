@@ -13,11 +13,19 @@
         <h2 class="text-2xl font-bold text-slate-800">Reportes y Análisis</h2>
         <p class="text-sm text-slate-500">Estadísticas y métricas del negocio</p>
     </div>
+    @unless($oculto)
     <div class="flex gap-2">
         <a href="{{ route('reportes.excel', $q) }}" class="flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white px-3 py-2 rounded-lg text-sm font-medium"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel</a>
         <a href="{{ route('reportes.pdf', $q) }}" target="_blank" class="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium"><i data-lucide="file-text" class="w-4 h-4"></i> Exportar PDF</a>
     </div>
+    @endunless
 </div>
+
+@if($oculto)
+<div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-4 mb-5 flex items-center gap-2 text-sm">
+    <i data-lucide="lock" class="w-5 h-5 shrink-0"></i> Estás viendo este módulo como <strong>Administrador</strong>. Por confidencialidad, los montos de ventas y las gráficas están ocultos.
+</div>
+@endif
 
 {{-- Filtro de fechas --}}
 <form method="GET" class="bg-white rounded-xl border border-slate-200 p-4 mb-5 flex flex-wrap items-end gap-3">
@@ -35,22 +43,31 @@
 
 {{-- Tarjetas --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
-    <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Ventas Totales</p><p class="text-2xl font-bold text-vortex-green2">${{ number_format($ventasTotales, 2) }}</p></div>
-    <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Productos Vendidos</p><p class="text-2xl font-bold text-slate-800">{{ number_format($productosVendidos) }}</p></div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Ventas Totales</p><p class="text-2xl font-bold text-vortex-green2">{{ $oculto ? '••••••' : '$'.number_format($ventasTotales, 2) }}</p></div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Productos Vendidos</p><p class="text-2xl font-bold text-slate-800">{{ $oculto ? '••••' : number_format($productosVendidos) }}</p></div>
     <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Clientes Registrados</p><p class="text-2xl font-bold text-slate-800">{{ number_format($clientesActivos) }}</p></div>
-    <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Ticket Promedio</p><p class="text-2xl font-bold text-slate-800">${{ number_format($ticketPromedio, 2) }}</p></div>
+    <div class="bg-white rounded-xl border border-slate-200 p-5"><p class="text-sm text-slate-500">Ticket Promedio</p><p class="text-2xl font-bold text-slate-800">{{ $oculto ? '••••••' : '$'.number_format($ticketPromedio, 2) }}</p></div>
 </div>
 
 {{-- Gráficas --}}
+@if($oculto)
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center text-amber-700">
+    <i data-lucide="bar-chart-3" class="w-8 h-8 mx-auto mb-2"></i>
+    <p class="font-medium">Gráficas de ventas ocultas</p>
+    <p class="text-sm">Por confidencialidad, las gráficas de ventas no se muestran al Administrador.</p>
+</div>
+@else
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
     <div class="bg-white rounded-xl border border-slate-200 p-5"><h3 class="font-semibold text-slate-700 mb-3">Ventas por Día de la Semana</h3><canvas id="chartDia" height="140"></canvas></div>
     <div class="bg-white rounded-xl border border-slate-200 p-5"><h3 class="font-semibold text-slate-700 mb-3">Ventas Mensuales</h3><canvas id="chartMes" height="140"></canvas></div>
     <div class="bg-white rounded-xl border border-slate-200 p-5"><h3 class="font-semibold text-slate-700 mb-3">Métodos de Pago</h3><canvas id="chartPago" height="140"></canvas></div>
     <div class="bg-white rounded-xl border border-slate-200 p-5"><h3 class="font-semibold text-slate-700 mb-3">Productos Más Vendidos</h3><canvas id="chartTop" height="140"></canvas></div>
 </div>
+@endif
 @endsection
 
 @section('scripts')
+@unless($oculto)
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     const VERDE = '#22c55e', AZUL = '#3b82f6', TEAL = '#14b8a6';
@@ -77,4 +94,5 @@
         options: { indexAxis: 'y', ...sinLeyenda }
     });
 </script>
+@endunless
 @endsection

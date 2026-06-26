@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Reporte de Ventas · Vortex Epix</title>
+<title>Reporte de Ventas · Supermercado</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     @media print { @page { size: A4; margin: 14mm; } .no-print { display:none; } body { background:#fff; } }
@@ -14,7 +14,7 @@
     <div class="flex items-center justify-between border-b-2 border-green-500 pb-4 mb-5">
         <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-white font-bold text-xl">VE</div>
-            <div><h1 class="text-xl font-bold text-slate-800">Vortex Epix</h1><p class="text-xs text-slate-500">Reporte de Ventas</p></div>
+            <div><h1 class="text-xl font-bold text-slate-800">Supermercado</h1><p class="text-xs text-slate-500">Reporte de Ventas</p></div>
         </div>
         <div class="text-right text-xs text-slate-500">
             <p>Generado: {{ now()->format('d/m/Y H:i') }}</p>

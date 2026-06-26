@@ -54,9 +54,9 @@
     <div class="hoja">
         <div class="top">
             <div class="empresa">
-                <div class="logo">VE</div>
+                <img src="/img/logomercado.png" alt="Supermercado" style="width:60px;height:60px;object-fit:contain;border-radius:12px;background:#fff;">
                 <div>
-                    <h1>Vortex Epix</h1>
+                    <h1>Supermercado</h1>
                     <p>Sistema de Gestión de Supermercado<br>
                     Acajutla, Sonsonate, El Salvador<br>
                     Tel: 7000-0000 · NRC: 000000-0 · NIT: 0000-000000-000-0</p>
@@ -121,7 +121,7 @@
         </div>
 
         <div class="pie">
-            <span>Documento generado por el sistema Vortex Epix.</span>
+            <span>Documento generado por el sistema del Supermercado.</span>
             <span>Instituto Nacional de Acajutla · Módulo 3.1</span>
         </div>
     </div>

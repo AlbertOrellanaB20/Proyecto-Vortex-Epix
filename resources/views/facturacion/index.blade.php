@@ -7,6 +7,12 @@
     <p class="text-sm text-slate-500">Historial de tickets y facturas generados por el sistema</p>
 </div>
 
+@if(auth()->user()->cargo === 'Administrador')
+<div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-4 mb-5 flex items-center gap-2 text-sm">
+    <i data-lucide="lock" class="w-5 h-5 shrink-0"></i> Estás viendo este módulo como <strong>Administrador</strong>. Por confidencialidad, los nombres de clientes y los montos están ocultos.
+</div>
+@endif
+
 {{-- Estadísticas --}}
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
@@ -14,7 +20,7 @@
         <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center"><i data-lucide="file-text" class="w-6 h-6 text-blue-500"></i></div>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
-        <div><p class="text-sm text-slate-500">Total Facturado</p><p class="text-3xl font-bold text-vortex-green2">${{ number_format($totalFacturado, 2) }}</p></div>
+        <div><p class="text-sm text-slate-500">Total Facturado</p><p class="text-3xl font-bold text-vortex-green2">@conf('$'.number_format($totalFacturado, 2))</p></div>
         <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center"><i data-lucide="dollar-sign" class="w-6 h-6 text-vortex-green2"></i></div>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
@@ -57,11 +63,11 @@
                 <tr class="hover:bg-slate-50">
                     <td class="px-4 py-3 font-mono text-xs font-semibold text-slate-700">N° {{ $v->factura->numero_factura ?? $v->id_venta }}</td>
                     <td class="px-4 py-3 text-slate-500">{{ \Carbon\Carbon::parse($v->fecha)->format('d/m/Y H:i') }}</td>
-                    <td class="px-4 py-3 text-slate-500">Consumidor Final</td>
+                    <td class="px-4 py-3 text-slate-500">@conf(optional($v->factura)->cliente ? $v->factura->cliente->nombre . ' ' . $v->factura->cliente->apellido : 'Consumidor Final')</td>
                     <td class="px-4 py-3 text-center text-slate-600">{{ $v->detalles->sum('cantidad') }}</td>
-                    <td class="px-4 py-3 text-right text-slate-500">${{ number_format($subtotal, 2) }}</td>
-                    <td class="px-4 py-3 text-right text-slate-500">${{ number_format($v->impuesto, 2) }}</td>
-                    <td class="px-4 py-3 text-right font-semibold text-slate-800">${{ number_format($v->total, 2) }}</td>
+                    <td class="px-4 py-3 text-right text-slate-500">@conf('$'.number_format($subtotal, 2))</td>
+                    <td class="px-4 py-3 text-right text-slate-500">@conf('$'.number_format($v->impuesto, 2))</td>
+                    <td class="px-4 py-3 text-right font-semibold text-slate-800">@conf('$'.number_format($v->total, 2))</td>
                     <td class="px-4 py-3 text-slate-500">{{ $v->factura->metodo_pago ?? '—' }}</td>
                     <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Pagado</span></td>
                     <td class="px-4 py-3">

@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Models\Configuracion;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class ClienteController extends Controller
 {
     public function index(Request $request)
     {
+        // Los puntos caducan al año: si un cliente no acumula puntos en 12 meses, se reinician.
+        Cliente::expirarPuntosVencidos();
+
         $buscar = $request->query('buscar');
 
         $clientes = Cliente::query()
@@ -34,13 +39,17 @@ class ClienteController extends Controller
     }
 
     // Reglas de validación (nombre/apellido solo letras, teléfono 8 dígitos)
-    private function reglas($id = null): array
+    private function reglas(Request $request, $id = null): array
     {
         $u = $id ? ',' . $id . ',id_cliente' : '';
         return [
-            'nombre'    => ['required', 'regex:/^[\pL\s\'\.\-]+$/u', 'max:100'],
+            // nombre + apellido NO se puede repetir (evita clientes duplicados)
+            'nombre'    => ['required', 'regex:/^[\pL\s\'\.\-]+$/u', 'max:100',
+                            Rule::unique('clientes', 'nombre')
+                                ->where(fn ($q) => $q->where('apellido', $request->apellido))
+                                ->ignore($id, 'id_cliente')],
             'apellido'  => ['required', 'regex:/^[\pL\s\'\.\-]+$/u', 'max:100'],
-            'correo'    => ['nullable', 'email', 'max:100', 'unique:clientes,correo' . $u],
+            'correo'    => ['nullable', 'email', 'max:100', 'unique:clientes,correo' . $u, 'regex:/@(gmail\.com|clases\.edu\.sv|hotmail\.com|outlook\.com)$/i'],
             'telefono'  => ['nullable', 'regex:/^\d{4}-?\d{4}$/', 'unique:clientes,telefono' . $u],
             'direccion' => ['nullable', 'string', 'max:200'],
             'puntos'    => ['nullable', 'integer', 'min:0'],
@@ -51,34 +60,49 @@ class ClienteController extends Controller
     {
         return [
             'nombre.regex'    => 'El nombre solo puede contener letras.',
+            'nombre.unique'   => 'Ya existe un cliente con ese mismo nombre y apellido.',
             'apellido.regex'  => 'El apellido solo puede contener letras.',
             'telefono.regex'  => 'El teléfono debe tener 8 dígitos (ejemplo: 7777-7777).',
             'telefono.unique' => 'Ese teléfono ya está registrado.',
             'correo.email'    => 'El correo no tiene un formato válido.',
             'correo.unique'   => 'Ese correo ya está registrado.',
+            'correo.regex'    => 'Solo se permiten correos @gmail.com, @clases.edu.sv, @hotmail.com o @outlook.com.',
         ];
     }
 
     public function store(Request $request)
     {
-        $datos = $request->validate($this->reglas(), $this->mensajes());
+        $datos = $request->validate($this->reglas($request), $this->mensajes());
 
         $datos['puntos'] = $datos['puntos'] ?? 0;
         $datos['nivel_fidelidad'] = Cliente::nivelPorPuntos($datos['puntos']);
+        if ($datos['puntos'] > 0 && \Illuminate\Support\Facades\Schema::hasColumn('clientes', 'puntos_actualizado')) {
+            $datos['puntos_actualizado'] = now('America/El_Salvador')->toDateString();
+        }
 
-        $cliente = Cliente::create($datos);
-        $cliente->codigo_cliente = 'CL' . str_pad($cliente->id_cliente, 4, '0', STR_PAD_LEFT);
-        $cliente->save();
+        // Transacción: si algo falla, NO queda un cliente registrado a medias.
+        $codigo = null;
+        DB::transaction(function () use ($datos, &$codigo) {
+            $cliente = Cliente::create($datos);
+            $cliente->codigo_cliente = 'CL' . str_pad($cliente->id_cliente, 4, '0', STR_PAD_LEFT);
+            $cliente->save();
+            $codigo = $cliente->codigo_cliente;
+        });
 
-        return redirect()->route('clientes.index')->with('exito', "Cliente registrado con código {$cliente->codigo_cliente}.");
+        return redirect()->route('clientes.index')->with('exito', "Cliente registrado con código {$codigo}.");
     }
 
     public function update(Request $request, $id)
     {
         $cliente = Cliente::findOrFail($id);
 
-        $datos = $request->validate($this->reglas($id), $this->mensajes());
+        $datos = $request->validate($this->reglas($request, $id), $this->mensajes());
 
+        // Si cambiaron los puntos manualmente, se reinicia el "reloj" de 1 año.
+        if (array_key_exists('puntos', $datos) && $datos['puntos'] !== null && (int) $datos['puntos'] !== (int) $cliente->puntos
+            && \Illuminate\Support\Facades\Schema::hasColumn('clientes', 'puntos_actualizado')) {
+            $datos['puntos_actualizado'] = now('America/El_Salvador')->toDateString();
+        }
         $datos['puntos'] = $datos['puntos'] ?? $cliente->puntos;
         $datos['nivel_fidelidad'] = Cliente::nivelPorPuntos($datos['puntos']);
 
@@ -110,6 +134,7 @@ class ClienteController extends Controller
 
         $cliente->puntos += $ganados;
         $cliente->nivel_fidelidad = Cliente::nivelPorPuntos($cliente->puntos);
+        $cliente->registrarMovimientoPuntos();
         $cliente->save();
 
         $valor = number_format($cliente->valorDescuento(), 2);

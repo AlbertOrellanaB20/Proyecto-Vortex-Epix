@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('titulo', 'Panel') · Vortex Epix</title>
+    <title>@yield('titulo', 'Panel') · Supermercado</title>
+    <link rel="icon" type="image/png" href="/img/logomercado.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -100,6 +101,22 @@
         }
     }
     setInterval(actualizarReloj, 1000); actualizarReloj();
+
+    // ===== Formato automático de teléfono (8 dígitos + guion: 7777-7777) =====
+    // Se aplica a cualquier input con la clase "js-telefono".
+    function formatearTelefonoSV(el) {
+        let v = el.value.replace(/\D/g, '').slice(0, 8); // solo números, máximo 8
+        if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4); // guion en medio
+        el.value = v;
+    }
+    document.querySelectorAll('.js-telefono').forEach(function (el) {
+        el.setAttribute('maxlength', '9');      // 8 dígitos + el guion
+        el.setAttribute('inputmode', 'numeric'); // teclado numérico en celular
+        el.addEventListener('keypress', function (e) {
+            if (!/[0-9]/.test(e.key)) e.preventDefault(); // bloquea letras
+        });
+        el.addEventListener('input', function () { formatearTelefonoSV(el); });
+    });
 </script>
 @yield('scripts')
 </body>

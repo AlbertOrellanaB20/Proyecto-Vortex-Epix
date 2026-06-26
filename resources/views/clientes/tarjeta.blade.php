@@ -17,7 +17,7 @@
 <body class="bg-slate-100 min-h-screen flex flex-col items-center justify-center p-6">
 
     @php
-        $empresa = $config->nombre_empresa ?? 'Vortex Epix';
+        $empresa = $config->nombre_empresa ?? 'Supermercado';
         $colores = [
             'Bronce'   => 'from-amber-700 to-amber-500',
             'Plata'    => 'from-slate-500 to-slate-300',

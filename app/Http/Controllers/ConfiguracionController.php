@@ -9,7 +9,7 @@ class ConfiguracionController extends Controller
 {
     public function index()
     {
-        $config = Configuracion::firstOrCreate(['id' => 1], ['nombre_empresa' => 'Vortex Epix']);
+        $config = Configuracion::firstOrCreate(['id' => 1], ['nombre_empresa' => 'Supermercado']);
         return view('configuracion.index', compact('config'));
     }
 

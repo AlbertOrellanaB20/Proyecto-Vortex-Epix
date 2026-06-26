@@ -13,6 +13,14 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // El Cajero y el de Inventario ven una pantalla de bienvenida.
+        // El Supervisor ve todos los datos; el Administrador ve el panel pero
+        // con los datos confidenciales (ventas, ingresos) OCULTOS.
+        if (!in_array(auth()->user()->cargo, ['Administrador', 'Supervisor'], true)) {
+            return view('dashboard.bienvenida');
+        }
+        $oculto = auth()->user()->cargo === 'Administrador';
+
         $hoy = Carbon::today('America/El_Salvador');
 
         // Tarjetas
@@ -42,7 +50,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', compact(
             'ventasHoy', 'productosHoy', 'stockBajo', 'ingresosTotales',
-            'labelsSemana', 'datosSemana', 'top', 'recientes', 'productosBajos'
+            'labelsSemana', 'datosSemana', 'top', 'recientes', 'productosBajos', 'oculto'
         ));
     }
 }

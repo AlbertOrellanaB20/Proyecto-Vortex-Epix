@@ -17,7 +17,7 @@
 </head>
 <body>
 <table>
-    <tr><td class="titulo" colspan="11">VORTEX EPIX</td></tr>
+    <tr><td class="titulo" colspan="11">SUPERMERCADO</td></tr>
     <tr><td class="sub" colspan="11">Reporte de Inventario — Sistema de Gestión de Supermercado</td></tr>
     <tr><td class="meta" colspan="11">Generado: {{ $fecha }}</td></tr>
     <tr><td class="meta" colspan="11">Total de productos: {{ $productos->count() }}  ·  Stock total: {{ number_format($totalStock) }} unidades</td></tr>

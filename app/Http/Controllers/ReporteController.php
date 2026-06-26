@@ -57,6 +57,7 @@ class ReporteController extends Controller
             'porDia' => array_map(fn ($n) => round($n, 2), array_values($porDia)),
             'porMes' => array_map(fn ($n) => round($n, 2), array_values($porMes)),
             'metodos' => $metodos, 'top' => $top,
+            'oculto' => auth()->check() && auth()->user()->cargo === 'Administrador',
         ];
     }
 

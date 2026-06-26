@@ -41,8 +41,8 @@
 <body>
     <div class="recibo">
         <div class="center">
-            <div class="logo">VE</div>
-            <div class="bold" style="font-size:14px; margin-top:4px;">VORTEX EPIX</div>
+            <img src="/img/logomercado.png" alt="Supermercado" style="width:46px;height:46px;object-fit:contain;">
+            <div class="bold" style="font-size:14px; margin-top:4px;">SUPERMERCADO</div>
             <div>Sistema de Gestión de Supermercado</div>
             <div>Tel: 7000-0000 · El Salvador</div>
         </div>
@@ -71,7 +71,7 @@
         <div class="fila bold" style="font-size:14px; margin-top:3px;"><span>TOTAL:</span><span>${{ number_format($total,2) }}</span></div>
         <div class="linea"></div>
         <div class="center">¡Gracias por su compra!</div>
-        <div class="center" style="font-size:10px; color:#6b7280; margin-top:4px;">Vortex Epix · INA Módulo 3.1</div>
+        <div class="center" style="font-size:10px; color:#6b7280; margin-top:4px;">Supermercado · INA Módulo 3.1</div>
     </div>
 
     <div class="acciones no-print">

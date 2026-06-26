@@ -11,7 +11,7 @@ class FacturacionController extends Controller
     {
         $buscar = $request->query('buscar');
 
-        $ventas = Venta::with(['factura', 'empleado', 'detalles'])
+        $ventas = Venta::with(['factura.cliente', 'empleado', 'detalles'])
             ->when($buscar, function ($q) use ($buscar) {
                 $q->whereHas('factura', fn ($f) => $f->where('numero_factura', 'like', "%{$buscar}%"));
             })

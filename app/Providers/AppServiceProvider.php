@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Enmascara datos confidenciales cuando el usuario es Administrador.
+        // Uso en Blade:  @conf($cliente->nombre)   ->  el admin ve "••••••"
+        \Illuminate\Support\Facades\Blade::directive('conf', function ($exp) {
+            return "<?php echo (auth()->check() && auth()->user()->cargo === 'Administrador') ? '••••••' : e($exp); ?>";
+        });
     }
 }

@@ -12,7 +12,7 @@
 </style></head>
 <body>
 <table>
-    <tr><td class="titulo" colspan="7">VORTEX EPIX</td></tr>
+    <tr><td class="titulo" colspan="7">SUPERMERCADO</td></tr>
     <tr><td class="sub" colspan="7">Reporte de Ventas — Sistema de Gestión de Supermercado</td></tr>
     <tr><td class="meta" colspan="7">Generado: {{ now()->format('d/m/Y H:i') }} @if($desde || $hasta) · Rango: {{ $desde ?: 'inicio' }} a {{ $hasta ?: 'hoy' }} @endif</td></tr>
     <tr><td colspan="7" style="border:none;">&nbsp;</td></tr>

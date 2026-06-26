@@ -32,16 +32,16 @@
 <div class="vortex-entrar bg-white rounded-2xl shadow-2xl overflow-hidden">
     <div class="px-8 pt-8 pb-6">
 
-        {{-- Ícono carrito verde + título --}}
+        {{-- Logo del supermercado + título --}}
         <div class="text-center space-y-3">
-            <div class="vortex-flotar mx-auto w-16 h-16 bg-vortex-neon rounded-2xl flex items-center justify-center
-                        shadow-lg shadow-vortex-neon/40">
-                <i data-lucide="shopping-cart" class="w-9 h-9 text-white"></i>
+            <div class="vortex-flotar mx-auto w-24 h-24 rounded-full bg-white flex items-center justify-center
+                        shadow-lg overflow-hidden">
+                <img src="/img/logomercado.png" alt="Supermercado" class="w-full h-full object-contain">
             </div>
             <div>
                 <h1 class="text-3xl font-bold bg-gradient-to-r from-vortex-navy to-vortex-sky
                            bg-clip-text text-transparent">
-                    Vortex Epix
+                    Supermercado
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">Sistema de Gestión de Supermercado</p>
             </div>

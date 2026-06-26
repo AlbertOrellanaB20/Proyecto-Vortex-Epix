@@ -12,14 +12,20 @@
     <p class="text-sm text-slate-500">Resumen general del supermercado</p>
 </div>
 
+@if($oculto)
+<div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-4 mb-5 flex items-center gap-2 text-sm">
+    <i data-lucide="lock" class="w-5 h-5 shrink-0"></i> Estás viendo este módulo como <strong>Administrador</strong>. Por confidencialidad, los datos de ventas e ingresos están ocultos.
+</div>
+@endif
+
 {{-- Tarjetas --}}
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
-        <div><p class="text-sm text-slate-500">Ventas del Día</p><p class="text-2xl font-bold text-slate-800">${{ number_format($ventasHoy, 2) }}</p></div>
+        <div><p class="text-sm text-slate-500">Ventas del Día</p><p class="text-2xl font-bold text-slate-800">{{ $oculto ? '••••••' : '$'.number_format($ventasHoy, 2) }}</p></div>
         <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center"><i data-lucide="dollar-sign" class="w-6 h-6 text-vortex-green2"></i></div>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
-        <div><p class="text-sm text-slate-500">Productos Vendidos (hoy)</p><p class="text-2xl font-bold text-slate-800">{{ number_format($productosHoy) }}</p></div>
+        <div><p class="text-sm text-slate-500">Productos Vendidos (hoy)</p><p class="text-2xl font-bold text-slate-800">{{ $oculto ? '••••' : number_format($productosHoy) }}</p></div>
         <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center"><i data-lucide="package-check" class="w-6 h-6 text-blue-500"></i></div>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
@@ -27,16 +33,24 @@
         <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center"><i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i></div>
     </div>
     <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center justify-between">
-        <div><p class="text-sm text-slate-500">Ingresos Totales</p><p class="text-2xl font-bold text-vortex-green2">${{ number_format($ingresosTotales, 2) }}</p></div>
+        <div><p class="text-sm text-slate-500">Ingresos Totales</p><p class="text-2xl font-bold text-vortex-green2">{{ $oculto ? '••••••' : '$'.number_format($ingresosTotales, 2) }}</p></div>
         <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center"><i data-lucide="trending-up" class="w-6 h-6 text-emerald-500"></i></div>
     </div>
 </div>
 
 {{-- Gráficas --}}
+@if($oculto)
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-8 mb-5 text-center text-amber-700">
+    <i data-lucide="bar-chart-3" class="w-8 h-8 mx-auto mb-2"></i>
+    <p class="font-medium">Gráficas de ventas ocultas</p>
+    <p class="text-sm">Por confidencialidad, las gráficas de ventas no se muestran al Administrador.</p>
+</div>
+@else
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
     <div class="bg-white rounded-xl border border-slate-200 p-5"><h3 class="font-semibold text-slate-700 mb-3">Ventas de la Semana</h3><canvas id="chartSemana" height="150"></canvas></div>
     <div class="bg-white rounded-xl border border-slate-200 p-5"><h3 class="font-semibold text-slate-700 mb-3">Productos Más Vendidos</h3><canvas id="chartTop" height="150"></canvas></div>
 </div>
+@endif
 
 {{-- Listas --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -50,7 +64,7 @@
                     <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center"><i data-lucide="receipt" class="w-4 h-4 text-vortex-green2"></i></div>
                     <div><p class="text-sm font-medium text-slate-700">N° {{ $v->factura->numero_factura ?? $v->id_venta }}</p><p class="text-xs text-slate-400">{{ $v->detalles->sum('cantidad') }} productos · {{ \Carbon\Carbon::parse($v->fecha)->format('d/m H:i') }}</p></div>
                 </div>
-                <span class="font-semibold text-vortex-green2">${{ number_format($v->total, 2) }}</span>
+                <span class="font-semibold text-vortex-green2">{{ $oculto ? '••••' : '$'.number_format($v->total, 2) }}</span>
             </div>
             @empty
             <p class="text-sm text-slate-400 py-4 text-center">No hay ventas todavía.</p>
@@ -76,6 +90,7 @@
 @endsection
 
 @section('scripts')
+@unless($oculto)
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     const sinLeyenda = { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
@@ -90,4 +105,5 @@
         options: { indexAxis: 'y', ...sinLeyenda }
     });
 </script>
+@endunless
 @endsection

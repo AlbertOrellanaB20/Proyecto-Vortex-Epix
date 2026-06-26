@@ -41,6 +41,9 @@ class AuthController extends Controller
             // Regenerar la sesión para prevenir session fixation.
             $request->session()->regenerate();
 
+            // Marca el inicio del turno (lo usa el corte de caja del cajero al cerrar sesión).
+            $request->session()->put('turno_inicio', now('America/El_Salvador')->toDateTimeString());
+
             return redirect()->intended(route('dashboard'));
         }
 

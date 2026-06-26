@@ -61,7 +61,7 @@
     <div class="bg-white rounded-xl border border-slate-200 p-6 h-fit">
         <h3 class="font-semibold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="info" class="w-5 h-5 text-blue-500"></i> Información del sistema</h3>
         <div class="space-y-3 text-sm">
-            <div class="flex justify-between"><span class="text-slate-500">Sistema</span><span class="font-medium text-slate-700">Vortex Epix POS</span></div>
+            <div class="flex justify-between"><span class="text-slate-500">Sistema</span><span class="font-medium text-slate-700">Supermercado POS</span></div>
             <div class="flex justify-between"><span class="text-slate-500">Versión PHP</span><span class="font-medium text-slate-700">{{ PHP_VERSION }}</span></div>
             <div class="flex justify-between"><span class="text-slate-500">Laravel</span><span class="font-medium text-slate-700">{{ app()->version() }}</span></div>
             <div class="flex justify-between"><span class="text-slate-500">Productos</span><span class="font-medium text-slate-700">{{ \App\Models\Producto::count() }}</span></div>

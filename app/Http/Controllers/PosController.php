@@ -15,7 +15,22 @@ class PosController extends Controller
     public function index()
     {
         $clientes = Cliente::orderBy('nombre')->get();
-        return view('pos.index', compact('clientes'));
+
+        // Productos para la cuadrícula del POS (con precio ya descontado si están por vencer)
+        $productos = Producto::orderBy('nombre')->get()->map(function ($p) {
+            return [
+                'id'              => $p->id_producto,
+                'nombre'          => $p->nombre,
+                'precio'          => $p->precioVigente(),
+                'precio_original' => round((float) $p->precio, 2),
+                'descuento'       => $p->porcentajeDescuento(),
+                'stock'           => (int) $p->stock,
+                'imagen'          => $p->imagen,
+                'categoria'       => $p->categoria,
+            ];
+        })->values();
+
+        return view('pos.index', compact('clientes', 'productos'));
     }
 
     // Buscar producto por código (escaneado o tecleado). El profe pidió SOLO por código.
@@ -47,12 +62,14 @@ class PosController extends Controller
         return response()->json([
             'ok' => true,
             'producto' => [
-                'id'     => $producto->id_producto,
-                'nombre' => $producto->nombre,
-                'precio' => (float) $producto->precio,
-                'stock'  => $producto->stock,
-                'imagen' => $producto->imagen,
-                'categoria' => $producto->categoria,
+                'id'              => $producto->id_producto,
+                'nombre'          => $producto->nombre,
+                'precio'          => $producto->precioVigente(),
+                'precio_original' => round((float) $producto->precio, 2),
+                'descuento'       => $producto->porcentajeDescuento(),
+                'stock'           => (int) $producto->stock,
+                'imagen'          => $producto->imagen,
+                'categoria'       => $producto->categoria,
             ],
         ]);
     }
@@ -84,7 +101,7 @@ class PosController extends Controller
                 if ($producto->stock < $item['cantidad']) {
                     throw new \Exception("Stock insuficiente de {$producto->nombre} (quedan {$producto->stock}).");
                 }
-                $subtotal += $producto->precio * $item['cantidad'];
+                $subtotal += $producto->precioVigente() * $item['cantidad'];
                 $productos[$producto->id_producto] = $producto;
             }
 
@@ -126,8 +143,8 @@ class PosController extends Controller
                     'id_venta'        => $venta->id_venta,
                     'id_producto'     => $producto->id_producto,
                     'cantidad'        => $item['cantidad'],
-                    'precio_unitario' => $producto->precio,
-                    'subtotal'        => round($producto->precio * $item['cantidad'], 2),
+                    'precio_unitario' => $producto->precioVigente(),
+                    'subtotal'        => round($producto->precioVigente() * $item['cantidad'], 2),
                 ]);
                 $producto->decrement('stock', $item['cantidad']);
             }
@@ -141,12 +158,17 @@ class PosController extends Controller
                     $puntosGanados = Cliente::puntosPorCompra($total);
                     $cliente->puntos += $puntosGanados;
                     $cliente->nivel_fidelidad = Cliente::nivelPorPuntos($cliente->puntos);
+                    $cliente->registrarMovimientoPuntos();
                     $cliente->save();
                     $clienteNombre = $cliente->nombre . ' ' . $cliente->apellido;
                 }
             }
 
             DB::commit();
+
+            // Enviar la factura por correo. Devuelve un mensaje de estado que se
+            // muestra en pantalla (así SABES si se envió o por qué no se envió).
+            $correoEstado = $this->enviarFacturaCorreo($datos, $venta);
 
             $vuelto = $datos['metodo_pago'] === 'Efectivo'
                 ? round((float) $datos['efectivo'] - $total, 2) : 0;
@@ -162,11 +184,34 @@ class PosController extends Controller
                 'tipo'           => $datos['tipo_documento'],
                 'cliente'        => $clienteNombre,
                 'puntos_ganados' => $puntosGanados,
+                'correo'         => $correoEstado,
             ]);
         } catch (\Exception $e) {
             // Si algo falla, se revierte TODO (no se corrompe el inventario)
             DB::rollBack();
             return response()->json(['ok' => false, 'mensaje' => $e->getMessage()], 422);
+        }
+    }
+
+    // Envía la factura por correo y devuelve un mensaje de estado para mostrarlo en pantalla.
+    private function enviarFacturaCorreo(array $datos, Venta $venta): string
+    {
+        if ($datos['tipo_documento'] !== 'Factura') {
+            return ''; // No es factura: no se envía correo.
+        }
+        if (empty($datos['id_cliente'])) {
+            return 'No se seleccionó un cliente de la lista, por eso no se envió la factura por correo.';
+        }
+        $cliente = Cliente::find($datos['id_cliente']);
+        if (!$cliente || empty($cliente->correo)) {
+            return 'El cliente seleccionado no tiene un correo registrado.';
+        }
+        try {
+            \Illuminate\Support\Facades\Mail::to($cliente->correo)->send(new \App\Mail\FacturaMail($venta));
+            return 'Factura enviada al correo ' . $cliente->correo;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Correo de factura no enviado: ' . $e->getMessage());
+            return 'No se pudo enviar el correo (' . $e->getMessage() . ')';
         }
     }
 
@@ -192,5 +237,36 @@ class PosController extends Controller
 
         // Respaldo: si aún no instalan DomPDF, se muestra el ticket en HTML
         return view('pos.ticket', compact('venta'));
+    }
+
+    // ============================================================
+    //  PRUEBA DE CORREO (diagnóstico). Visita en el navegador:
+    //   /probar-correo?email=TUCORREO@gmail.com            -> correo simple
+    //   /probar-correo?email=TUCORREO@gmail.com&venta=53   -> envía la factura de la venta 53
+    //  Muestra el ERROR REAL si algo falla. Puedes borrar este
+    //  método y su ruta cuando ya funcione.
+    // ============================================================
+    public function probarCorreo(Request $request)
+    {
+        $email = $request->query('email');
+        if (!$email) {
+            return 'Agrega ?email=TUCORREO@gmail.com al final de la URL. (Opcional: &venta=ID para enviar una factura real.)';
+        }
+        try {
+            $ventaId = $request->query('venta');
+            if ($ventaId) {
+                $venta = Venta::findOrFail($ventaId);
+                \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\FacturaMail($venta));
+                return '✅ FACTURA de la venta ' . e($ventaId) . ' enviada a ' . e($email) . '. Revisa tu bandeja de entrada y la carpeta de SPAM.';
+            }
+            \Illuminate\Support\Facades\Mail::raw('Correo de prueba del sistema Supermercado. Si lees esto, el correo SI funciona.', function ($m) use ($email) {
+                $m->to($email)->subject('Prueba de correo - Supermercado');
+            });
+            return '✅ Correo de prueba ENVIADO a ' . e($email) . '. Revisa tu bandeja de entrada y la carpeta de SPAM. Si llegó, las facturas también se enviarán.';
+        } catch (\Throwable $e) {
+            return '<h3 style="font-family:sans-serif;">❌ ERROR al enviar el correo:</h3>'
+                 . '<pre style="white-space:pre-wrap;color:#b91c1c;font-size:13px;">' . e($e->getMessage()) . '</pre>'
+                 . '<p style="font-family:sans-serif;">Revisa: (1) el archivo .env con los datos MAIL_*, (2) que corriste <b>php artisan config:clear</b>, (3) que la clave de aplicación de Gmail sea la correcta.</p>';
+        }
     }
 }

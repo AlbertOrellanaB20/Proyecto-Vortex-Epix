@@ -16,7 +16,7 @@
 <form method="GET" class="mb-5">
     <div class="relative">
         <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-        <input type="text" name="buscar" value="{{ $buscar }}" placeholder="Buscar productos por código, nombre o categoría..."
+        <input type="text" name="buscar" id="buscarProducto" autocomplete="off" value="{{ $buscar }}" placeholder="Buscar productos por código, nombre o categoría..."
                class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
     </div>
 </form>
@@ -41,7 +41,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100">
                 @forelse ($productos as $p)
-                <tr class="hover:bg-slate-50">
+                <tr class="producto-row hover:bg-slate-50">
                     <td class="px-5 py-3 font-mono text-xs text-slate-500">{{ $p->codigo_barras }}</td>
                     <td class="px-5 py-3 font-medium text-slate-700 flex items-center gap-2">
                         <i data-lucide="package" class="w-4 h-4 text-vortex-green"></i> {{ $p->nombre }}
@@ -175,6 +175,19 @@
         lucide.createIcons();
     }
     function cerrarModalProducto() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+    // Búsqueda de productos EN VIVO (filtra la tabla mientras escribes, sin Enter)
+    (function () {
+        const buscador = document.getElementById('buscarProducto');
+        if (!buscador) return;
+        buscador.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            document.querySelectorAll('.producto-row').forEach(function (fila) {
+                fila.style.display = fila.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    })();
+
     // Si hubo errores de validación, reabrir el modal
     @if ($errors->any()) abrirModalProducto(); @endif
 </script>

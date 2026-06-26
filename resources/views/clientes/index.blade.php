@@ -18,10 +18,18 @@
         <h2 class="text-2xl font-bold text-slate-800">Clientes Frecuentes</h2>
         <p class="text-sm text-slate-500">Programa de fidelización con puntos y niveles</p>
     </div>
+    @unless(auth()->user()->cargo === 'Administrador')
     <button onclick="abrirModalCliente()" class="flex items-center gap-2 bg-vortex-green hover:bg-vortex-green2 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition">
         <i data-lucide="user-plus" class="w-4 h-4"></i> Agregar Cliente
     </button>
+    @endunless
 </div>
+
+@if(auth()->user()->cargo === 'Administrador')
+<div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-4 mb-5 flex items-center gap-2 text-sm">
+    <i data-lucide="lock" class="w-5 h-5 shrink-0"></i> Estás viendo este módulo como <strong>Administrador</strong>. Por confidencialidad, los datos de los clientes (nombres y contacto) están ocultos.
+</div>
+@endif
 
 {{-- Estadísticas --}}
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
@@ -37,7 +45,7 @@
 <form method="GET" class="mb-5">
     <div class="relative">
         <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-        <input type="text" name="buscar" value="{{ $buscar }}" placeholder="Buscar por código, nombre, correo o teléfono..."
+        <input type="text" name="buscar" id="buscarCliente" autocomplete="off" value="{{ $buscar }}" placeholder="Buscar por código, nombre, correo o teléfono..."
                class="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
     </div>
 </form>
@@ -60,16 +68,23 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse ($clientes as $c)
-                    <tr class="hover:bg-slate-50">
+                    <tr class="cliente-row hover:bg-slate-50">
                         <td class="px-4 py-3 font-mono text-xs text-vortex-green2 font-semibold">{{ $c->codigo_cliente ?? '—' }}</td>
-                        <td class="px-4 py-3 font-medium text-slate-700">{{ $c->nombre }} {{ $c->apellido }}</td>
+                        <td class="px-4 py-3 font-medium text-slate-700">@conf($c->nombre.' '.$c->apellido)</td>
                         <td class="px-4 py-3 text-slate-500 text-xs">
+                            @if(auth()->user()->cargo === 'Administrador')
+                            <div>••••••</div>
+                            @else
                             @if($c->correo)<div>{{ $c->correo }}</div>@endif
                             @if($c->telefono)<div>{{ $c->telefono }}</div>@endif
+                            @endif
                         </td>
                         <td class="px-4 py-3 text-center font-bold text-slate-700">{{ number_format($c->puntos) }}</td>
                         <td class="px-4 py-3 text-center"><span class="inline-block px-2.5 py-1 rounded-full text-xs font-semibold {{ colorNivel($c->nivel_fidelidad) }}">{{ $c->nivel_fidelidad }}</span></td>
                         <td class="px-4 py-3">
+                            @if(auth()->user()->cargo === 'Administrador')
+                            <div class="text-right text-xs text-slate-300">Solo lectura</div>
+                            @else
                             <div class="flex items-center justify-end gap-1.5">
                                 <button title="Sumar puntos" onclick="abrirPuntos({{ $c->id_cliente }}, '{{ addslashes($c->nombre) }}')" class="p-1.5 rounded-md text-vortex-green2 hover:bg-green-50"><i data-lucide="plus-circle" class="w-4 h-4"></i></button>
                                 <button title="Ver QR" onclick="verQR('{{ $c->codigo_cliente }}', '{{ addslashes($c->nombre) }}')" class="p-1.5 rounded-md text-slate-500 hover:bg-slate-100"><i data-lucide="qr-code" class="w-4 h-4"></i></button>
@@ -80,6 +95,7 @@
                                     <button title="Eliminar" class="p-1.5 rounded-md text-red-500 hover:bg-red-50"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                 </form>
                             </div>
+                            @endif
                         </td>
                     </tr>
                     @empty
@@ -97,7 +113,7 @@
             @forelse ($top as $i => $c)
             <div class="flex items-center gap-3 text-sm">
                 <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-bold shrink-0">{{ $i + 1 }}</span>
-                <div class="flex-1 min-w-0"><p class="font-medium text-slate-700 truncate">{{ $c->nombre }} {{ $c->apellido }}</p></div>
+                <div class="flex-1 min-w-0"><p class="font-medium text-slate-700 truncate">@conf($c->nombre.' '.$c->apellido)</p></div>
                 <span class="font-bold text-vortex-green2">{{ number_format($c->puntos) }}</span>
             </div>
             @empty
@@ -122,7 +138,7 @@
                 <div><label class="block text-xs font-medium text-slate-600 mb-1">Nombre *</label><input type="text" name="nombre" id="c_nombre" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
                 <div><label class="block text-xs font-medium text-slate-600 mb-1">Apellido *</label><input type="text" name="apellido" id="c_apellido" required class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
                 <div><label class="block text-xs font-medium text-slate-600 mb-1">Correo</label><input type="email" name="correo" id="c_correo" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
-                <div><label class="block text-xs font-medium text-slate-600 mb-1">Teléfono</label><input type="text" name="telefono" id="c_telefono" placeholder="7777-7777" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
+                <div><label class="block text-xs font-medium text-slate-600 mb-1">Teléfono</label><input type="text" name="telefono" id="c_telefono" placeholder="7777-7777" class="js-telefono w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
                 <div class="col-span-2"><label class="block text-xs font-medium text-slate-600 mb-1">Dirección</label><input type="text" name="direccion" id="c_direccion" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
                 <div><label class="block text-xs font-medium text-slate-600 mb-1">Puntos iniciales</label><input type="number" name="puntos" id="c_puntos" min="0" value="0" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40"></div>
             </div>
@@ -193,6 +209,18 @@
         document.getElementById('modalQR').classList.remove('hidden'); document.getElementById('modalQR').classList.add('flex');
     }
     function cerrarQR() { document.getElementById('modalQR').classList.add('hidden'); document.getElementById('modalQR').classList.remove('flex'); }
+
+    // Búsqueda de clientes EN VIVO (filtra la tabla mientras escribes, sin Enter)
+    (function () {
+        const buscador = document.getElementById('buscarCliente');
+        if (!buscador) return;
+        buscador.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            document.querySelectorAll('.cliente-row').forEach(function (fila) {
+                fila.style.display = fila.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    })();
 
     @if ($errors->any()) abrirModalCliente(); @endif
 </script>

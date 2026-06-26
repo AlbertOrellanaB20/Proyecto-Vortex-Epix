@@ -4,6 +4,8 @@
     $subtotal = round($venta->detalles->sum('subtotal'), 2);
     $iva = round($subtotal * 0.13, 2);
     $total = round($subtotal + $iva, 2);
+    $logoPath = public_path('img/logomercado.png');
+    $logo = (extension_loaded('gd') && file_exists($logoPath)) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : null;
 @endphp
 <!DOCTYPE html>
 <html>
@@ -23,7 +25,8 @@
 </style>
 </head>
 <body>
-    <div class="center bold big">VORTEX EPIX</div>
+    @if($logo)<div class="center"><img src="{{ $logo }}" style="width:44px;height:44px;"></div>@endif
+    <div class="center bold big">SUPERMERCADO</div>
     <div class="center">Sistema de Gestión de Supermercado</div>
     <div class="center">Tel: 7000-0000 · El Salvador</div>
     <div class="linea"></div>
@@ -57,6 +60,6 @@
     </table>
     <div class="linea"></div>
     <div class="center">¡Gracias por su compra!</div>
-    <div class="center gris" style="font-size: 8px;">Vortex Epix · INA Módulo 3.1</div>
+    <div class="center gris" style="font-size: 8px;">Supermercado · INA Módulo 3.1</div>
 </body>
 </html>

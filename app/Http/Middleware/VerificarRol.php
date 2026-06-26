@@ -28,12 +28,11 @@ class VerificarRol
 
         $empleado = Auth::user();
 
-        // 2. El Administrador siempre tiene acceso total.
-        if ($empleado->cargo === 'Administrador') {
-            return $next($request);
-        }
+        // El acceso se define por la lista de roles de cada ruta (incluido el
+        // Administrador donde corresponde). Así el Administrador NO ve datos
+        // confidenciales (clientes, ventas) salvo donde esté permitido.
 
-        // 3. Verificar que el cargo del empleado esté en la lista permitida.
+        // Verificar que el cargo del empleado esté en la lista permitida.
         if (!in_array($empleado->cargo, $rolesPermitidos, true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }

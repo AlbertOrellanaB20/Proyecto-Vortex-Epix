@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\CorteCajaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,6 +34,12 @@ Route::middleware('auth')->group(function () {
     // Dashboard: todos los roles (módulo de Bryan Steve)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Corte de caja: cierre de turno del cajero (muestra sus ventas y el fondo de $50)
+    Route::get('/corte-caja', [CorteCajaController::class, 'index'])->name('corte.caja');
+
+    // Diagnóstico de correo (puedes borrar esta línea cuando el correo ya funcione)
+    Route::get('/probar-correo', [PosController::class, 'probarCorreo'])->name('probar.correo');
+
     // Configuración: solo Administrador (módulo de Bryan Steve)
     Route::middleware('rol:Administrador')->group(function () {
         Route::get('/configuracion', [ConfiguracionController::class, 'index'])->name('configuracion.index');
@@ -43,25 +50,29 @@ Route::middleware('auth')->group(function () {
     | MÓDULO: Punto de Venta (POS) + Escáner  →  Diego (diego/pos)
     | Acceso: Administrador, Cajero, Supervisor
     *----------------------------------------------------------------*/
-    Route::middleware('rol:Cajero,Supervisor')->group(function () {
+    // POS: TODOS los roles pueden VER el POS y los comprobantes (consultar)
+    Route::middleware('rol:Administrador,Cajero,Supervisor,Inventario')->group(function () {
         Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
         Route::get('/pos/buscar', [PosController::class, 'buscar'])->name('pos.buscar');
-        Route::post('/pos/cobrar', [PosController::class, 'cobrar'])->name('pos.cobrar');
         Route::get('/pos/comprobante/{id}', [PosController::class, 'comprobante'])->name('pos.comprobante');
+    });
+    // Pero SOLO el Cajero puede COBRAR (realizar la venta)
+    Route::middleware('rol:Cajero')->group(function () {
+        Route::post('/pos/cobrar', [PosController::class, 'cobrar'])->name('pos.cobrar');
     });
 
     /*----------------------------------------------------------------
     | MÓDULO: Productos + Inventario  →  Alberto (alberto/productos)
     *----------------------------------------------------------------*/
     // Productos: Administrador, Supervisor, Inventario
-    Route::middleware('rol:Supervisor,Inventario')->group(function () {
+    Route::middleware('rol:Administrador,Supervisor,Inventario')->group(function () {
         Route::get('/productos', [ProductoController::class, 'index'])->name('productos.index');
         Route::post('/productos', [ProductoController::class, 'store'])->name('productos.store');
         Route::put('/productos/{id}', [ProductoController::class, 'update'])->name('productos.update');
         Route::delete('/productos/{id}', [ProductoController::class, 'destroy'])->name('productos.destroy');
     });
     // Inventario: Administrador, Inventario
-    Route::middleware('rol:Inventario')->group(function () {
+    Route::middleware('rol:Administrador,Inventario')->group(function () {
         Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
         Route::post('/inventario/reabastecer', [InventarioController::class, 'reabastecer'])->name('inventario.reabastecer');
         Route::get('/inventario/exportar', [InventarioController::class, 'exportar'])->name('inventario.exportar');
@@ -70,9 +81,12 @@ Route::middleware('auth')->group(function () {
     /*----------------------------------------------------------------
     | MÓDULO: Clientes + Proveedores  →  Edgar (edgar/clientes)
     *----------------------------------------------------------------*/
-    // Clientes Frecuentes: Administrador, Supervisor
-    Route::middleware('rol:Supervisor')->group(function () {
+    // Clientes (lista): Administrador (verá los datos OCULTOS), Cajero y Supervisor
+    Route::middleware('rol:Administrador,Cajero,Supervisor')->group(function () {
         Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
+    });
+    // Gestión de clientes (crear/editar/puntos/tarjeta/eliminar): solo Cajero y Supervisor
+    Route::middleware('rol:Cajero,Supervisor')->group(function () {
         Route::get('/clientes/{id}/tarjeta', [ClienteController::class, 'tarjeta'])->name('clientes.tarjeta');
         Route::post('/clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::post('/clientes/puntos', [ClienteController::class, 'agregarPuntos'])->name('clientes.puntos');
@@ -80,7 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/clientes/{id}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
     });
     // Proveedores: Administrador, Inventario
-    Route::middleware('rol:Inventario')->group(function () {
+    Route::middleware('rol:Administrador,Inventario')->group(function () {
         Route::get('/proveedores', [ProveedorController::class, 'index'])->name('proveedores.index');
         Route::post('/proveedores', [ProveedorController::class, 'store'])->name('proveedores.store');
         Route::put('/proveedores/{id}', [ProveedorController::class, 'update'])->name('proveedores.update');
@@ -94,14 +108,14 @@ Route::middleware('auth')->group(function () {
     | MÓDULO: Seguridad + Logs  →  Danilo (danilo/seguridad)
     *----------------------------------------------------------------*/
     // Usuarios / Empleados: Administrador, Supervisor
-    Route::middleware('rol:Supervisor')->group(function () {
+    Route::middleware('rol:Administrador,Supervisor')->group(function () {
         Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
         Route::post('/empleados', [EmpleadoController::class, 'store'])->name('empleados.store');
         Route::put('/empleados/{id}', [EmpleadoController::class, 'update'])->name('empleados.update');
         Route::delete('/empleados/{id}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
     });
-    // Bitácora / Logs: solo Administrador
-    Route::middleware('rol:Administrador')->group(function () {
+    // Bitácora / Logs: Administrador y Supervisor (para revisar por si hay fraude)
+    Route::middleware('rol:Administrador,Supervisor')->group(function () {
         Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
     });
 
@@ -109,9 +123,13 @@ Route::middleware('auth')->group(function () {
     | MÓDULO: Facturación + Reportes  →  Eduardo (eduardo/reportes)
     | Acceso: Administrador, Supervisor
     *----------------------------------------------------------------*/
-    Route::middleware('rol:Supervisor')->group(function () {
+    // Facturación y Reportes (ver): Administrador (verá los datos OCULTOS) y Supervisor
+    Route::middleware('rol:Administrador,Supervisor')->group(function () {
         Route::get('/facturacion', [FacturacionController::class, 'index'])->name('facturacion.index');
         Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
+    });
+    // Exportar reportes: solo Supervisor (el admin no exporta datos confidenciales)
+    Route::middleware('rol:Supervisor')->group(function () {
         Route::get('/reportes/excel', [ReporteController::class, 'exportarExcel'])->name('reportes.excel');
         Route::get('/reportes/pdf', [ReporteController::class, 'exportarPdf'])->name('reportes.pdf');
     });

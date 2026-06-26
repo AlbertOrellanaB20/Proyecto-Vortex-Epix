@@ -12,8 +12,32 @@ class Cliente extends Model
 
     protected $fillable = [
         'nombre', 'apellido', 'correo', 'codigo_cliente',
-        'telefono', 'direccion', 'puntos', 'nivel_fidelidad',
+        'telefono', 'direccion', 'puntos', 'nivel_fidelidad', 'puntos_actualizado',
     ];
+
+    // Los puntos caducan después de 1 año sin acumular nada nuevo.
+    // Se llama automáticamente al abrir el módulo de Clientes.
+    public static function expirarPuntosVencidos(): void
+    {
+        // Seguridad: si todavía no se ha corrido el SQL (columna nueva), no hace nada.
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('clientes', 'puntos_actualizado')) {
+            return;
+        }
+        $limite = now('America/El_Salvador')->subYear()->toDateString();
+        self::where('puntos', '>', 0)
+            ->whereNotNull('puntos_actualizado')
+            ->whereDate('puntos_actualizado', '<', $limite)
+            ->update(['puntos' => 0, 'nivel_fidelidad' => 'Bronce', 'puntos_actualizado' => null]);
+    }
+
+    // Marca la fecha de hoy en los puntos (solo si la columna existe).
+    // Así el "reloj" de 1 año empieza a contar cuando el cliente gana puntos.
+    public function registrarMovimientoPuntos(): void
+    {
+        if (\Illuminate\Support\Facades\Schema::hasColumn('clientes', 'puntos_actualizado')) {
+            $this->puntos_actualizado = now('America/El_Salvador')->toDateString();
+        }
+    }
 
     // ============================================================
     //  ECONOMÍA DE PUNTOS (Santiago)

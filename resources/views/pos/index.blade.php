@@ -32,7 +32,7 @@
                 <h3 class="font-semibold text-slate-700 flex items-center gap-2"><i data-lucide="shopping-cart" class="w-5 h-5"></i> Productos en la venta</h3>
                 <span id="contadorItems" class="text-xs text-slate-400">0 productos</span>
             </div>
-            <div id="listaItems" class="divide-y divide-slate-100 max-h-[420px] overflow-y-auto">
+            <div id="listaItems" class="divide-y divide-slate-100 max-h-[460px] overflow-y-auto">
                 <div id="vacio" class="px-5 py-16 text-center text-slate-400">
                     <i data-lucide="package-search" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
                     <p class="text-sm">Aún no has escaneado productos.</p>
@@ -51,14 +51,17 @@
             <div class="flex justify-between text-lg font-bold text-slate-800"><span>Total</span><span id="t_total" class="text-vortex-green2">$0.00</span></div>
         </div>
 
-        {{-- Cliente --}}
+        {{-- Cliente (con búsqueda en vivo) --}}
         <p class="text-xs font-medium text-slate-600 mb-2 flex items-center gap-1"><i data-lucide="user" class="w-4 h-4"></i> Cliente</p>
-        <select id="selectCliente" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
-            <option value="">Consumidor Final</option>
-            @foreach($clientes as $cli)
-                <option value="{{ $cli->id_cliente }}">{{ $cli->nombre }} {{ $cli->apellido }} ({{ $cli->codigo_cliente }})</option>
-            @endforeach
-        </select>
+        <div class="relative mb-4">
+            <input id="inputCliente" type="text" autocomplete="off" placeholder="Consumidor Final"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-vortex-green/40">
+            <input type="hidden" id="selectCliente" value="">
+            <button type="button" id="limpiarCliente" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <div id="listaClientes" class="hidden absolute z-30 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-56 overflow-y-auto"></div>
+        </div>
 
         {{-- Método de pago --}}
         <p class="text-xs font-medium text-slate-600 mb-2">Método de Pago</p>
@@ -91,6 +94,12 @@
                 <input type="radio" name="tipo" value="Factura" class="accent-vortex-green"> Factura
             </label>
         </div>
+
+        @unless (auth()->user()->cargo === 'Cajero')
+        <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-3 text-sm text-center mb-2 flex items-center justify-center gap-2">
+            <i data-lucide="lock" class="w-4 h-4"></i> Tu rol es de <strong>consulta</strong>: puedes ver el POS pero solo los cajeros pueden cobrar.
+        </div>
+        @endunless
 
         <div class="flex gap-2">
             <button onclick="cancelarVenta()" class="flex-1 flex items-center justify-center gap-1 border border-slate-200 text-slate-600 rounded-lg py-2.5 text-sm hover:bg-slate-50">
@@ -130,6 +139,11 @@
             <i data-lucide="star" class="w-4 h-4 inline"></i> <span id="x_cliente"></span> ganó <span id="x_puntos" class="font-bold"></span> puntos
         </div>
 
+        {{-- Estado del envío de la factura por correo --}}
+        <div id="x_correo_row" class="hidden rounded-lg p-3 mb-4 text-sm text-left">
+            <i data-lucide="mail" class="w-4 h-4 inline"></i> <span id="x_correo"></span>
+        </div>
+
         <div class="flex gap-2">
             <a id="x_imprimir" href="#" target="_blank" class="flex-1 border border-slate-200 text-slate-600 rounded-lg py-2.5 text-sm hover:bg-slate-50 flex items-center justify-center gap-1">
                 <i data-lucide="printer" class="w-4 h-4"></i> Imprimir
@@ -146,15 +160,29 @@
     const URL_BUSCAR = "{{ route('pos.buscar') }}";
     const URL_COBRAR = "{{ route('pos.cobrar') }}";
     const URL_COMPROB = "{{ url('/pos/comprobante') }}";
-    let carrito = []; // {id, nombre, precio, stock, imagen, cantidad}
+
+    const CLIENTES = @json($clientes); // para la búsqueda de cliente en vivo
+    const ES_CAJERO = @json(auth()->user()->cargo === 'Cajero'); // solo el cajero puede cobrar
+    let carrito = []; // {id, nombre, precio, precio_original, descuento, stock, imagen, cantidad}
 
     const input = document.getElementById('inputCodigo');
+
+    // ---- Escáner / código manual (Enter) ----
     input.addEventListener('keydown', async (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             const codigo = input.value.trim();
             input.value = '';
             if (codigo) await buscarProducto(codigo);
+        }
+    });
+
+    // El lector SIEMPRE listo: si haces clic en un lugar vacío, el foco vuelve solo al escáner.
+    document.addEventListener('click', (e) => {
+        const modalAbierto = !document.getElementById('modalExito').classList.contains('hidden');
+        if (modalAbierto) return;
+        if (!e.target.closest('input, select, textarea, button, a')) {
+            input.focus();
         }
     });
 
@@ -203,16 +231,18 @@
 
         carrito.forEach(i => {
             const sub = (i.precio * i.cantidad).toFixed(2);
+            // Imagen GRANDE del producto escaneado
             const img = i.imagen
-                ? `<img src="/img/productos/${i.imagen}" class="w-12 h-12 rounded object-cover bg-slate-100" onerror="this.outerHTML='<div class=\\'w-12 h-12 rounded bg-slate-100 flex items-center justify-center\\'><i data-lucide=\\'package\\' class=\\'w-5 h-5 text-slate-400\\'></i></div>'">`
-                : `<div class="w-12 h-12 rounded bg-slate-100 flex items-center justify-center"><i data-lucide="package" class="w-5 h-5 text-slate-400"></i></div>`;
+                ? `<img src="/img/productos/${i.imagen}" class="w-24 h-24 rounded-lg object-contain bg-slate-50 shrink-0" onerror="this.outerHTML='<div class=\\'w-24 h-24 rounded-lg bg-slate-100 flex items-center justify-center shrink-0\\'><i data-lucide=\\'package\\' class=\\'w-10 h-10 text-slate-400\\'></i></div>'">`
+                : `<div class="w-24 h-24 rounded-lg bg-slate-100 flex items-center justify-center shrink-0"><i data-lucide="package" class="w-10 h-10 text-slate-400"></i></div>`;
+            const desc = i.descuento > 0 ? ` <span class="text-red-500 font-semibold">-${i.descuento}%</span>` : '';
             const div = document.createElement('div');
             div.className = 'fila item-nuevo px-5 py-3 flex items-center gap-3';
             div.innerHTML = `
                 ${img}
                 <div class="flex-1 min-w-0">
                     <p class="font-medium text-slate-700 truncate">${i.nombre}</p>
-                    <p class="text-xs text-slate-400">$${i.precio.toFixed(2)} c/u</p>
+                    <p class="text-xs text-slate-400">$${i.precio.toFixed(2)} c/u${desc}</p>
                 </div>
                 <div class="flex items-center gap-1">
                     <button onclick="cambiarCantidad(${i.id},-1)" class="w-7 h-7 rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50">−</button>
@@ -227,9 +257,8 @@
         lucide.createIcons();
     }
 
-    // Redondeo a 2 decimales seguro (evita errores de centavos)
+    // Redondeo a 2 decimales seguro
     function r2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
-    // Cálculo ÚNICO de totales, usado en todos lados (display, vuelto y cobro)
     function totales() {
         const subtotal = r2(carrito.reduce((a, i) => a + i.precio * i.cantidad, 0));
         const iva = r2(subtotal * 0.13);
@@ -241,7 +270,7 @@
         document.getElementById('t_subtotal').textContent = '$' + subtotal.toFixed(2);
         document.getElementById('t_iva').textContent = '$' + iva.toFixed(2);
         document.getElementById('t_total').textContent = '$' + total.toFixed(2);
-        document.getElementById('btnCobrar').disabled = carrito.length === 0;
+        document.getElementById('btnCobrar').disabled = carrito.length === 0 || !ES_CAJERO;
         calcularVuelto();
     }
 
@@ -264,7 +293,16 @@
     }
     function alerta(t) { const m = document.getElementById('msgScan'); m.textContent = '⚠️ ' + t; m.className = 'text-sm mt-2 h-5 text-red-500'; }
 
+    // Restaura el botón Cobrar a su estado normal (arregla el "Procesando" pegado)
+    function resetBotonCobrar() {
+        const btn = document.getElementById('btnCobrar');
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Cobrar';
+        btn.disabled = carrito.length === 0;
+        lucide.createIcons();
+    }
+
     async function cobrar() {
+        if (!ES_CAJERO) { alerta('Solo los cajeros pueden realizar ventas.'); return; }
         if (carrito.length === 0) return;
         const metodo = metodoActual();
         const { total } = totales();
@@ -283,13 +321,13 @@
                     metodo_pago: metodo,
                     tipo_documento: document.querySelector('input[name="tipo"]:checked').value,
                     efectivo: efectivo,
-                    id_cliente: document.getElementById('selectCliente').value || null
+                    id_cliente: resolverCliente()
                 })
             });
             const data = await r.json();
-            if (!data.ok) { alerta(data.mensaje || 'No se pudo cobrar'); btn.disabled=false; btn.innerHTML='<i data-lucide="check" class="w-4 h-4"></i> Cobrar'; lucide.createIcons(); return; }
+            if (!data.ok) { alerta(data.mensaje || 'No se pudo cobrar'); resetBotonCobrar(); return; }
             mostrarExito(data);
-        } catch { alerta('Error de conexión al cobrar'); btn.disabled=false; btn.innerHTML='<i data-lucide="check" class="w-4 h-4"></i> Cobrar'; lucide.createIcons(); }
+        } catch { alerta('Error de conexión al cobrar'); resetBotonCobrar(); }
     }
 
     function mostrarExito(d) {
@@ -306,6 +344,15 @@
         } else {
             filaPuntos.classList.add('hidden');
         }
+        // Estado del correo de la factura
+        const filaCorreo = document.getElementById('x_correo_row');
+        if (d.correo && d.correo.trim() !== '') {
+            document.getElementById('x_correo').textContent = d.correo;
+            const exito = d.correo.indexOf('enviada') !== -1;
+            filaCorreo.className = 'rounded-lg p-3 mb-4 text-sm text-left ' + (exito ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700');
+        } else {
+            filaCorreo.classList.add('hidden');
+        }
         const modal = document.getElementById('modalExito');
         modal.classList.remove('hidden'); modal.classList.add('flex');
         lucide.createIcons();
@@ -315,9 +362,77 @@
         document.getElementById('cajon').classList.remove('cajon-abierto');
         document.getElementById('modalExito').classList.add('hidden');
         document.getElementById('modalExito').classList.remove('flex');
-        carrito = []; document.getElementById('inputEfectivo').value = 0; render(); input.focus();
+        carrito = [];
+        document.getElementById('inputEfectivo').value = 0;
+        limpiarClienteSel();
+        render();
+        resetBotonCobrar(); // <- el botón vuelve a decir "Cobrar"
+        input.focus();
     }
 
+    // ================== CLIENTE CON BÚSQUEDA EN VIVO ==================
+    const inputCli = document.getElementById('inputCliente');
+    const hiddenCli = document.getElementById('selectCliente');
+    const listaCli = document.getElementById('listaClientes');
+    const btnLimpiarCli = document.getElementById('limpiarCliente');
+
+    function renderClientes(filtro) {
+        const f = (filtro || '').trim().toLowerCase();
+        listaCli.innerHTML = '';
+        const items = [];
+        if (!f || 'consumidor final'.includes(f)) items.push({ id: '', texto: 'Consumidor Final', sub: '' });
+        CLIENTES.filter(c => {
+            const nombre = (c.nombre + ' ' + c.apellido).toLowerCase();
+            return !f || nombre.includes(f) || (c.codigo_cliente || '').toLowerCase().includes(f);
+        }).slice(0, 30).forEach(c => items.push({ id: c.id_cliente, texto: c.nombre + ' ' + c.apellido, sub: c.codigo_cliente || '' }));
+
+        if (items.length === 0) {
+            listaCli.innerHTML = '<div class="px-3 py-2 text-sm text-slate-400">Sin resultados</div>';
+        } else {
+            items.forEach(it => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'w-full text-left px-3 py-2 text-sm hover:bg-green-50 flex justify-between items-center gap-2';
+                b.innerHTML = `<span class="text-slate-700 truncate">${it.texto}</span>${it.sub ? '<span class="text-xs text-slate-400 shrink-0">'+it.sub+'</span>' : ''}`;
+                b.onclick = () => seleccionarCliente(it.id, it.texto);
+                listaCli.appendChild(b);
+            });
+        }
+        listaCli.classList.remove('hidden');
+    }
+    function seleccionarCliente(id, texto) {
+        hiddenCli.value = id;
+        inputCli.value = (id === '' ? '' : texto);
+        listaCli.classList.add('hidden');
+        btnLimpiarCli.classList.toggle('hidden', id === '');
+        input.focus();
+    }
+    function limpiarClienteSel() {
+        hiddenCli.value = '';
+        inputCli.value = '';
+        btnLimpiarCli.classList.add('hidden');
+        listaCli.classList.add('hidden');
+    }
+    // Resuelve el cliente para el cobro: usa el seleccionado; si escribiste el
+    // nombre exacto sin hacer clic en la sugerencia, lo encuentra igual (así
+    // no se pierde el correo al enviar la factura).
+    function resolverCliente() {
+        if (hiddenCli.value) return hiddenCli.value;
+        const txt = inputCli.value.trim().toLowerCase();
+        if (txt) {
+            const m = CLIENTES.find(c => (c.nombre + ' ' + c.apellido).toLowerCase() === txt);
+            if (m) { hiddenCli.value = m.id_cliente; return m.id_cliente; }
+        }
+        return null;
+    }
+    inputCli.addEventListener('focus', () => renderClientes(inputCli.value));
+    inputCli.addEventListener('input', () => { hiddenCli.value = ''; btnLimpiarCli.classList.add('hidden'); renderClientes(inputCli.value); });
+    btnLimpiarCli.addEventListener('click', limpiarClienteSel);
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#inputCliente') && !e.target.closest('#listaClientes')) listaCli.classList.add('hidden');
+    });
+
     render();
+    input.focus();
 </script>
 @endsection

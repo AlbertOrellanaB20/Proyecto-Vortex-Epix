@@ -3,15 +3,15 @@
     // Menú con los roles permitidos por cada módulo (RBAC, según la tabla del Sprint 2)
     $menu = [
         ['ruta' => 'dashboard',          'icono' => 'layout-dashboard', 'texto' => 'Inicio',      'roles' => ['Administrador','Cajero','Supervisor','Inventario']],
-        ['ruta' => 'pos.index',          'icono' => 'shopping-cart',    'texto' => 'Ventas POS',  'roles' => ['Administrador','Cajero','Supervisor']],
+        ['ruta' => 'pos.index',          'icono' => 'shopping-cart',    'texto' => 'Ventas POS',  'roles' => ['Administrador','Cajero','Supervisor','Inventario']],
         ['ruta' => 'productos.index',    'icono' => 'package',          'texto' => 'Productos',   'roles' => ['Administrador','Supervisor','Inventario']],
         ['ruta' => 'inventario.index',   'icono' => 'boxes',            'texto' => 'Inventario',  'roles' => ['Administrador','Inventario']],
-        ['ruta' => 'clientes.index',     'icono' => 'users',            'texto' => 'Clientes',    'roles' => ['Administrador','Supervisor']],
+        ['ruta' => 'clientes.index',     'icono' => 'users',            'texto' => 'Clientes',    'roles' => ['Administrador','Supervisor','Cajero']],
         ['ruta' => 'proveedores.index',  'icono' => 'truck',            'texto' => 'Proveedores', 'roles' => ['Administrador','Inventario']],
         ['ruta' => 'empleados.index',    'icono' => 'id-card',          'texto' => 'Empleados',   'roles' => ['Administrador','Supervisor']],
         ['ruta' => 'facturacion.index',  'icono' => 'file-text',        'texto' => 'Facturación', 'roles' => ['Administrador','Supervisor']],
         ['ruta' => 'reportes.index',     'icono' => 'bar-chart-3',      'texto' => 'Reportes',    'roles' => ['Administrador','Supervisor']],
-        ['ruta' => 'bitacora.index',     'icono' => 'scroll-text',      'texto' => 'Bitácora',    'roles' => ['Administrador']],
+        ['ruta' => 'bitacora.index',     'icono' => 'scroll-text',      'texto' => 'Bitácora',    'roles' => ['Administrador','Supervisor']],
         ['ruta' => 'configuracion.index','icono' => 'settings',         'texto' => 'Configuración','roles' => ['Administrador']],
     ];
 @endphp
@@ -20,12 +20,12 @@
        lg:static lg:translate-x-0">
     {{-- Logo --}}
     <div class="px-5 py-5 flex items-center gap-3 border-b border-white/10">
-        <div class="w-10 h-10 rounded-xl bg-vortex-green flex items-center justify-center shrink-0">
-            <i data-lucide="shopping-cart" class="w-6 h-6 text-white"></i>
+        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden">
+            <img src="/img/logomercado.png" alt="Supermercado" class="w-full h-full object-contain">
         </div>
         <div class="leading-tight">
-            <p class="text-white font-bold text-lg">Vortex Epix</p>
-            <p class="text-xs text-slate-400">Sistema POS</p>
+            <p class="text-white font-bold text-lg">Supermercado</p>
+            <p class="text-xs text-slate-400">Cerca de ti, siempre</p>
         </div>
         <button id="cerrarSidebar" class="lg:hidden ml-auto text-slate-400 hover:text-white" aria-label="Cerrar menu">
             <i data-lucide="x" class="w-6 h-6"></i>
@@ -60,11 +60,18 @@
 
     {{-- Cerrar sesión --}}
     <div class="px-3 py-4 border-t border-white/10">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-red-500/20 hover:text-red-300 transition">
+        @if ($cargo === 'Cajero')
+            {{-- El cajero pasa primero por el corte de caja (fondo de $50) --}}
+            <a href="{{ route('corte.caja') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-red-500/20 hover:text-red-300 transition">
                 <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
-            </button>
-        </form>
+            </a>
+        @else
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-red-500/20 hover:text-red-300 transition">
+                    <i data-lucide="log-out" class="w-5 h-5"></i> Cerrar Sesión
+                </button>
+            </form>
+        @endif
     </div>
 </aside>
